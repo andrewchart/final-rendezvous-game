@@ -136,7 +136,7 @@ card to give in exchange for the money.
 When you are sure you know the correct Codeword and location, you can attempt
 the final rendezvous to end the game!
 
-Read the ["End Game"](#end-game---making-the-rendezvous) section below to see
+Read the ["End Game"](#end-game-making-the-rendezvous) section below to see
 how this works.
 
 ---
@@ -188,4 +188,4 @@ won!!*
 
 ## Detailed Instructions
 To read the instructions for the game in more detail, and learn about nuances
-and edge cases in the game, check out the [detailed instructions page](documentation/players/detailed-instructions.md "How to play Final Rendezvous")
+and edge cases in the game, check out the [detailed instructions page](detailed-instructions.md "How to play Final Rendezvous")
