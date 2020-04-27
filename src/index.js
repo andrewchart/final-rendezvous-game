@@ -7,9 +7,6 @@ import {
   Route
 } from 'react-router-dom';
 
-// Global Styles
-import './styles/global.css';
-
 // Components
 import Loading from './components/global/Loading.js';
 import ErrorBoundary from './components/global/ErrorBoundary.js';
@@ -20,7 +17,7 @@ import Shell from './views/Shell.js';
 // Views
 import Home from './views/Home.js';
 import Error from './views/Error.js';
-const  Play = lazy(() => import('./views/Play.js'));
+const  Game = lazy(() => import('./views/Game.js'));
 
 //import * as serviceWorker from './serviceWorker';
 
@@ -32,14 +29,22 @@ ReactDOM.render(
           <Shell>
             <Switch>
 
-              <Route path="/play">
-                <Play />
+              <Route path="/game/:id" component={Game} />
+              <Route path="/game" component={Game} />
+
+              <Route path="/about">
+                <main>About</main>
+              </Route>
+
+              <Route path="/how-to-play">
+                <main>How To Play</main>
               </Route>
 
               <Route exact path="/">
                 <Home />
               </Route>
 
+              //Todo: server respond 404
               <Route
                 path="*"
                 component={() => <Error type="404" />} />

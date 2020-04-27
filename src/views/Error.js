@@ -17,12 +17,12 @@ export default class Error extends React.Component {
         errorHeading = "An Error Has Occurred";
         errorMessage = "Sorry, an error occurred whilst loading this page.";
         showTryAgain = true;
-        
+
     }
 
     return (
       <main className="error">
-        <h1>{errorHeading}</h1>
+        <h2>{errorHeading}</h2>
         <p>
           {errorMessage}
           {showTryAgain &&

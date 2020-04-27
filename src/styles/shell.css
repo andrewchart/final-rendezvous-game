@@ -1,0 +1,78 @@
+/**
+ * shell.css
+ * Styles to use when the main app shell is loaded
+ * Styles for ./src/views/shell.js
+ */
+
+#app {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  row-gap: 0.7em;
+}
+
+header, main, footer {
+  padding-left: 1.2em;
+  padding-right: 1.2em;
+}
+
+header, footer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+}
+
+header {
+  border-bottom: 1px solid #005848;
+}
+
+header h1 {
+  margin-right: 1.66em;
+}
+
+header nav {
+  height: 66px;
+  line-height: 66px;
+}
+
+footer {
+  padding: 0.7em 1.2em;
+  background-color: #369c8a;
+  font-size: 0.75em;
+  border-top: 1px solid #037560;
+}
+
+footer p, footer nav {
+  margin: 0.3em 0;
+}
+
+footer p {
+  margin-right: 2.25em;
+}
+
+a {
+  font-weight: 700;
+  color: #fff;
+  text-decoration: none;
+}
+
+a:hover {
+  color: #bfe7ff;
+}
+
+p {
+  margin-bottom: 1em;
+  line-height: 160%;
+}
+
+nav {
+  text-align: right;
+}
+
+nav a {
+  margin-right: 1.8em;
+}
+
+nav a:last-child {
+  margin-right: 0;
+}

@@ -4,7 +4,9 @@ export default class Home extends React.Component {
   render() {
     return (
       <main className="home">
-        <h1>Final Rendezvous</h1>
+        <p>Final Rendezvous is a online espionage game for 2-8 players.
+        Can you be the first to find the codeword and rendezvous with Agent X?
+        Play here now!</p>
       </main>
     );
   }
