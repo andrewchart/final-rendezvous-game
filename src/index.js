@@ -29,7 +29,7 @@ ReactDOM.render(
           <Shell>
             <Switch>
 
-              <Route path="/game/:id" component={Game} />
+              <Route path="/game/:gameId" component={Game} />
               <Route path="/game" component={Game} />
 
               <Route path="/about">
@@ -44,7 +44,7 @@ ReactDOM.render(
                 <Home />
               </Route>
 
-              //Todo: server respond 404
+              { /* Todo: server respond 404 */ } 
               <Route
                 path="*"
                 component={() => <Error type="404" />} />

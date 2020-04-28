@@ -1,16 +1,23 @@
 import React, {Fragment} from 'react';
 
+import {Link} from 'react-router-dom';
+
 export default class Error extends React.Component {
   render() {
 
-    let errorHeading, errorMessage, showTryAgain;
+    let errorHeading, errorMessage, showTryAgain, showNewGame;
 
     switch(this.props.type) {
 
       case "404":
         errorHeading = "404 Not Found";
         errorMessage = "Sorry, we could not find that page.";
-        showTryAgain = false;
+        break;
+
+      case "invalid_game":
+        errorHeading = "Invalid Game ID";
+        errorMessage = "Sorry, we could not find that game ID.";
+        showNewGame = true;
         break;
 
       default:
@@ -27,7 +34,13 @@ export default class Error extends React.Component {
           {errorMessage}
           {showTryAgain &&
             <Fragment>
-              {' '}Please <a href={window.location}>click here</a> to try again.
+              {' '}Please <Link to={window.location}>click here</Link> to try again.
+            </Fragment>
+          }
+          {showNewGame &&
+            <Fragment>
+              {' '}Please <a href="/game">click here</a> to start a new game
+              or <Link to="/">return to the homepage</Link> to try a different code.
             </Fragment>
           }
         </p>
