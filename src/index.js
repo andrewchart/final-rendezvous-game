@@ -8,8 +8,8 @@ import {
 } from 'react-router-dom';
 
 // Components
-import Loading from './components/global/Loading.js';
-import ErrorBoundary from './components/global/ErrorBoundary.js';
+import Loading from './ui_components/global/Loading.js';
+import ErrorBoundary from './ui_components/global/ErrorBoundary.js';
 
 // App Shell
 import Shell from './views/Shell.js';
@@ -44,7 +44,7 @@ ReactDOM.render(
                 <Home />
               </Route>
 
-              { /* Todo: server respond 404 */ } 
+              { /* Todo: server respond 404 */ }
               <Route
                 path="*"
                 component={() => <Error type="404" />} />

@@ -1,7 +1,7 @@
 import React, {Fragment} from 'react';
 
-import Header from '../components/global/Header.js';
-import Footer from '../components/global/Footer.js';
+import Header from '../ui_components/global/Header.js';
+import Footer from '../ui_components/global/Footer.js';
 
 import '../styles/shell.css';
 

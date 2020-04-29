@@ -31,7 +31,7 @@ export default class Home extends React.Component {
         </div>
 
         <p>Click "Start A New Game" to get a unique room code which you can then
-        share with your friends. They can then join the same room.</p>
+        share with your friends. They can then join your game room.</p>
 
       </main>
     );
