@@ -1,9 +1,12 @@
 import React, {Fragment} from 'react';
 
+import {Provider} from 'react-redux';
+import GameData from '../models/Game/GameData.js';
+
 import GameHost from '../controllers/Game/GameHost.js';
 import GameController from '../controllers/Game/GameController.js';
 
-import GameData from '../models/Game/GameData.js';
+import Loading from '../ui_components/global/Loading.js';
 
 import {
   AddPlayer,
@@ -20,14 +23,6 @@ export default class Game extends React.Component {
   constructor(props) {
     super(props);
 
-    /* The UI has different states depending on whether this is a valid gameId
-    and whether the game has started or not. */
-    this.state = {
-      gameIsValid: false,
-      gameHasStarted: false,
-      gameData: new GameData() // Empty Game Data object
-    }
-
     // Create a game host using the ID from the url. The host manages the game.
     // We pass the host this view so the host can manage the view's state
     this.host = new GameHost(this.props.match.params.gameId, this);
@@ -35,6 +30,17 @@ export default class Game extends React.Component {
     // Create a game controller and pass it the view.
     // The game controller manages the in-play functions
     this.controller = new GameController(this);
+
+    // The UI has different states depending on whether this is a valid gameId
+    // and whether the game has started or not.
+    this.state = {
+      gameData: new GameData(this.host.gameId), // Empty Game Data Store (Redux)
+      loading: true,
+      gameIsValid: false,
+      gameCanStart: false, //TODO: Has the gamedata loaded yet?
+      gameHasStarted: false
+    }
+
   }
 
 
@@ -45,7 +51,16 @@ export default class Game extends React.Component {
   componentDidMount() {
 
     // Check the Game ID is valid
-    this.setState({ gameIsValid: this.host.gameIsValid() });
+    this.host.gameIsValid()
+      .then(result => {
+        this.setState({
+          loading: false,
+          gameIsValid: result
+        });
+
+        //TODO: Populate store with game data using host.loadgame .then() set gameCanStart
+
+      });
 
   }
 
@@ -61,22 +76,28 @@ export default class Game extends React.Component {
   }
 
   getInGameComponents() {
-    return <div>In Game View <br /><br /> <pre>{JSON.stringify(this.state.gameData)}</pre></div>
+    return <div>In Game View <br /><br /></div>
   }
 
   render() {
+
+    // Show the loading icon until we've checked the gameId is valid
+    if(this.state.loading)
+      return <Loading />;
 
     // If the gameId is invalid...
     if(!this.state.gameIsValid)
       return <Error type="invalid_game" />;
 
-    // Create the game UI
+    // Otherwise, we can create the game UI
     // If the game hasn't started, show the pre-game view (capture players)
     // If the game has started, show the in-game view
     return (
-      <main className="game">
+      <Provider store={this.state.gameData.store}>
+        <main className="game">
         {this.state.gameHasStarted ? this.getInGameComponents() : this.getPreGameComponents() }
-      </main>
+        </main>
+      </Provider>
     );
 
   }

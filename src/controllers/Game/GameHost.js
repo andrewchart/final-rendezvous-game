@@ -37,6 +37,11 @@ export default class GameHost {
    */
   gameIsValid() {
 
+    // TODO: Remove this example fetch() call
+    return fetch('https://jsonplaceholder.typicode.com/todos/1')
+      .then(response => response.json())
+      .then(response => { return true });
+
     // Empty gameId => Start a new game
     if(!this._gameId) {
 
@@ -79,9 +84,7 @@ export default class GameHost {
   }
 
   addPlayer() {
-    let gameData = this._view.state.gameData;
-    gameData.players.push("Joe");
-    this._view.setState({ gameData: gameData });
+
   }
 
   removePlayer() {
