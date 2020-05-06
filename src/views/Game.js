@@ -34,7 +34,7 @@ export default class Game extends React.Component {
     // The UI has different states depending on whether this is a valid gameId
     // and whether the game has started or not.
     this.state = {
-      gameData: new GameData(this.host.gameId), // Empty Game Data Store (Redux)
+      gameData: null,
       loading: true,
       gameIsValid: false,
       gameCanStart: false, //TODO: Has the gamedata loaded yet?
@@ -54,6 +54,7 @@ export default class Game extends React.Component {
     this.host.gameIsValid()
       .then(result => {
         this.setState({
+          gameData: new GameData(this.host.gameId), // Empty Game Data Store (Redux)
           loading: false,
           gameIsValid: result
         });
@@ -68,8 +69,14 @@ export default class Game extends React.Component {
     return (
       <Fragment>
         <p>Pregame</p>
-        <AddPlayer onClick={this.host.addPlayer} />
-        <StartGame onClick={this.host.startGame} />
+        <form>
+          <label htmlFor="player-name">
+            Name:
+            <input type="text" id="player-name" value="" />
+          </label>
+          <AddPlayer onClick={this.host.addPlayer} />
+          <StartGame onClick={this.host.startGame} />
+        </form>
       </Fragment>
     );
 
@@ -93,7 +100,7 @@ export default class Game extends React.Component {
     // If the game hasn't started, show the pre-game view (capture players)
     // If the game has started, show the in-game view
     return (
-      <Provider store={this.state.gameData.store}>
+      <Provider store={this.state.gameData}>
         <main className="game">
         {this.state.gameHasStarted ? this.getInGameComponents() : this.getPreGameComponents() }
         </main>
