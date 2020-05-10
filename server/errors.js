@@ -1,4 +1,5 @@
-/* Server Error Responses */
+/* SERVER ERROR RESPONSES */
+// Used in server middleware to resolve requests to generic client and server errors
 
 function notFound(res) {
   res.status(404).send({ errors: [{ code: 404, message: 'Not Found' }] });

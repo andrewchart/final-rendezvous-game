@@ -6,9 +6,9 @@ const GameData = require('../../models/GameData.js');
 class GamesAPI {
 
   /**
-   * Creates a class to handle requests to /api/games
-   * @param {Object} req Express Server Request Object
-   * @param {Object} res Express Server Response Object
+   * Creates a class to handle requests to /api/games.
+   * @param {Object} req Express Server Request Object.
+   * @param {Object} res Express Server Response Object.
    */
   constructor(req, res, db) {
     this.req = req;
@@ -18,9 +18,9 @@ class GamesAPI {
   }
 
   /**
-   * Creates a new game in the database with a unique ID
+   * Creates a new game in the database with a unique ID.
    * @return {Promise} Resolves with gameId once the ID has been determined to
-   *                   be unique within the database
+   *                   be unique within the database.
    */
   async create() {
 
@@ -51,7 +51,7 @@ class GamesAPI {
     let gameData = new GameData(gameId);
     this.db.insertOne(gameData, 'games');
 
-    return this.res.send({ gameId: gameId });
+    return this.res.send({ _id: gameId });
   }
 
 
@@ -95,9 +95,10 @@ class GamesAPI {
   // UTILITIES
 
   /**
-   * [createRandomGameCode description]
-   * @param  {[type]} len [description]
-   * @return {[type]}     [description]
+   * Creates a random string of capital letters between A and Z, without any
+   * vowels. These codes are used as unique room identifiers (game IDs).
+   * @param  {Int} len The length of the output string.
+   * @return {String}  The random output string.
    */
   createRandomGameCode(len) {
 
@@ -118,9 +119,10 @@ class GamesAPI {
   }
 
   /**
-   * [gameCodeIsUnique description]
-   * @param  {[type]} code [description]
-   * @return {[type]}      [description]
+   * Checks a game code is unique by querying the database for that code.
+   * @param  {String} code The code to be checked.
+   * @return {Boolean}     Returns true if the code is unique, false on empty code
+   *                       or a code which is not unique.
    */
   gameCodeIsUnique(code) {
 

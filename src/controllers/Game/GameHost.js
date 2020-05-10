@@ -18,9 +18,9 @@ const PATH_TO_API = process.env.REACT_APP_PATH_TO_API;
 export default class GameHost {
 
   /**
-   * Creates a new game Host.
-   * @param {String} gameId [Unique identifier for this game]
-   * @param {Object} view   [The React view which is displaying the game]
+   * Creates a new game Host class to control entry into a game.
+   * @param {String} gameId Unique identifier for this game
+   * @param {Object} view   The React view which is displaying the game
    */
   constructor(gameId = '', view) {
     this._gameId = gameId.toUpperCase();
@@ -34,7 +34,7 @@ export default class GameHost {
 
   /**
    * Creates a new game on the server with a unique gameId.
-   * @return {Promise} Returns gameId or false on failure
+   * @return {Promise} Resolves to gameId object or false on failure
    */
   registerNewGame() {
 
@@ -49,12 +49,14 @@ export default class GameHost {
       //Parse response object
       return response.json().then(json => {
 
-        this._gameId = json.gameId;
+        this._gameId = json._id;
 
         // Change the url in the url bar and the history without refreshing the page
         history.replace("/game/" + this._gameId, "newGameIdRegistered");
 
-      });
+        return json;
+
+      }).then(json => {return json});
 
     // Handle all errors
     }).catch(err => {
@@ -64,14 +66,17 @@ export default class GameHost {
         loading: false
       });
 
+      return false;
+
     });
 
   }
 
   /**
    * Loads an existing game's game data using its gameId.
-   * @param  {String} gameId  A unique gameId
-   * @return {Promise} TODO
+   * @param  {String}  gameId  A unique gameId
+   * @return {Promise | false} Resolves to an instance of the GameData model or
+   *                           false on failure
    */
   loadGame(gameId) {
 
@@ -86,6 +91,7 @@ export default class GameHost {
       // Parse response object
       return response.json().then(json => {
 
+        // Create a Redux store to handle game data
         let store = createStore(
           () => { return json },
           window.__REDUX_DEVTOOLS_EXTENSION__ && window.__REDUX_DEVTOOLS_EXTENSION__()
@@ -98,7 +104,9 @@ export default class GameHost {
           loading: false
         });
 
-      });
+        return json;
+
+      }).then(json => {return json});
 
     // Handle all errors
     }).catch(err => {
@@ -108,9 +116,9 @@ export default class GameHost {
         loading: false
       });
 
+      return false;
+
     });
-
-
 
   }
 
