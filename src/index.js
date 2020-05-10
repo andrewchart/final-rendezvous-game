@@ -29,8 +29,7 @@ ReactDOM.render(
           <Shell>
             <Switch>
 
-              <Route path="/game/:gameId" component={Game} />
-              <Route path="/game" component={Game} />
+              <Route path="/game/:gameId?" component={Game} />
 
               <Route path="/about">
                 <main>About</main>

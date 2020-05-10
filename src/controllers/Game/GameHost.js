@@ -1,6 +1,10 @@
+import {createStore} from 'redux';
+
 // Allow the Game Host to manipulate history API
 import { createBrowserHistory } from 'history';
 const history = createBrowserHistory();
+
+const PATH_TO_API = process.env.REACT_APP_PATH_TO_API;
 
 /**
  * The Game Host manages the Game instance at a high level including creating a
@@ -15,8 +19,8 @@ export default class GameHost {
 
   /**
    * Creates a new game Host.
-   * @param {[String]} gameId [Unique identifier for this game]
-   * @param {[Object]} view   [The React view which is displaying the game]
+   * @param {String} gameId [Unique identifier for this game]
+   * @param {Object} view   [The React view which is displaying the game]
    */
   constructor(gameId = '', view) {
     this._gameId = gameId.toUpperCase();
@@ -29,62 +33,91 @@ export default class GameHost {
 
 
   /**
-   * Checks whether the current host has a valid gameId. Creates a new gameId
-   * if the host has an empty gameId currently.
-   *
-   * @return {[Boolean]} [True if the game has been successfully initiated on
-   *                      the server. False otherwise.]
+   * Creates a new game on the server with a unique gameId.
+   * @return {Promise} Returns gameId or false on failure
    */
-  gameIsValid() {
+  registerNewGame() {
 
-    // TODO: Remove this example fetch() call
-    return fetch('https://jsonplaceholder.typicode.com/todos/1')
-      .then(response => response.json())
-      .then(response => { return true });
+    // Call API
+    return fetch(PATH_TO_API + '/games', { method: 'post' }).then(response => {
 
-    // Empty gameId => Start a new game
-    if(!this._gameId) {
-
-      const newGameId = this.registerNewGame();
-
-      if(newGameId) {
-        this._gameId = newGameId;
-        return true;
+      // Throw error on bad response
+      if(response.status !== 200) {
+        throw(new Error("Could not create new game"));
       }
 
-      else {
-        return false;
-      }
+      //Parse response object
+      return response.json().then(json => {
 
-    }
+        this._gameId = json.gameId;
 
-    // TODO: Otherwise, check validity of gameId
-    if(this._gameId) return true;
+        // Change the url in the url bar and the history without refreshing the page
+        history.replace("/game/" + this._gameId, "newGameIdRegistered");
 
+      });
 
-    return false;
+    // Handle all errors
+    }).catch(err => {
+
+      this._view.setState({
+        gameIsValid: false,
+        loading: false
+      });
+
+    });
+
   }
 
   /**
-   * Creates a new game on the server with a unique gameId.
-   * @return {[String] | false} [Returns gameId or false on failure]
+   * Loads an existing game's game data using its gameId.
+   * @param  {String} gameId  A unique gameId
+   * @return {Promise} TODO
    */
-  registerNewGame() {
-    // TODO: create a new unique game ID
-    this._gameId = Math.floor(Math.random()*9999);
+  loadGame(gameId) {
 
-    // Change the url in the url bar and the history without refreshing the page
-    history.replace("/game/" + this._gameId, "newGameIdRegistered");
+    // Call API
+    return fetch(PATH_TO_API + '/games/' + gameId).then(response => {
 
-    return this._gameId;
+      // Throw error on bad response
+      if(response.status !== 200) {
+        throw(new Error("Could not get game ID: " + gameId));
+      }
+
+      // Parse response object
+      return response.json().then(json => {
+
+        let store = createStore(
+          () => { return json },
+          window.__REDUX_DEVTOOLS_EXTENSION__ && window.__REDUX_DEVTOOLS_EXTENSION__()
+        );
+
+        this._view.setState({
+          gameIsValid: true,
+          gameData: store,
+          gameCanStart: true,
+          loading: false
+        });
+
+      });
+
+    // Handle all errors
+    }).catch(err => {
+
+      this._view.setState({
+        gameIsValid: false,
+        loading: false
+      });
+
+    });
+
+
+
   }
 
-  loadGameData(gameId) {
-    //fetch
-  }
 
-  addPlayer() {
-
+  addPlayer(e) {
+    this._view.state.gameData.dispatch({ type: "ADD_PLAYER", name: 'rand' });
+    e.preventDefault();
   }
 
   removePlayer() {

@@ -1,7 +1,6 @@
 import React, {Fragment} from 'react';
 
 import {Provider} from 'react-redux';
-import GameData from '../models/Game/GameData.js';
 
 import GameHost from '../controllers/Game/GameHost.js';
 import GameController from '../controllers/Game/GameController.js';
@@ -14,6 +13,7 @@ import {
 } from '../ui_components/Game/PreGame.js';
 
 import Error from '../views/Error.js';
+
 
 /**
  * The Game view starts the rendering of a game UI by creating game data
@@ -43,32 +43,27 @@ export default class Game extends React.Component {
 
   }
 
-
   /**
-   * Once the component is available and has a Game Host, check that the gameId
-   * is valid before rendering the UI.
+   * Once the component is available and has a Game Host, create a new game and
+   * load it once created, or load an existing game by ID.
    */
   componentDidMount() {
 
-    // Check the Game ID is valid
-    this.host.gameIsValid()
-      .then(result => {
-        this.setState({
-          gameData: new GameData(this.host.gameId), // Empty Game Data Store (Redux)
-          loading: false,
-          gameIsValid: result
-        });
-
-        //TODO: Populate store with game data using host.loadgame .then() set gameCanStart
-
+    if(!this.host.gameId) {
+      this.host.registerNewGame().then(() => {
+        this.host.loadGame(this.host.gameId);
       });
+    } else {
+      this.host.loadGame(this.host.gameId);
+    }
 
   }
 
   getPreGameComponents() {
     return (
       <Fragment>
-        <p>Pregame</p>
+        <p>Pregame {this.host.gameId}</p>
+
         <form>
           <label htmlFor="player-name">
             Name:
@@ -88,7 +83,7 @@ export default class Game extends React.Component {
 
   render() {
 
-    // Show the loading icon until we've checked the gameId is valid
+    // Show the loading icon whilst performing work
     if(this.state.loading)
       return <Loading />;
 

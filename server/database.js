@@ -64,6 +64,15 @@ class Database {
 
   }
 
+  async findOne(query, collection) {
+    try {
+      return await this.db.collection(collection).findOne(query);
+    } catch(error) {
+      console.log(error.stack);
+      return null;
+    }
+  }
+
   /* DEBUG -- TODO: REMOVE */
   async deleteAll(collection) {
     this.db.collection(collection).deleteMany({});
