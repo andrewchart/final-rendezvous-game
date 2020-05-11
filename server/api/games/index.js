@@ -14,7 +14,6 @@ class GamesAPI {
     this.req = req;
     this.res = res;
     this.db  = db;
-    //this.db.deleteAll('games')//TODO REMOVE
   }
 
   /**

@@ -1,6 +1,7 @@
 import React from 'react';
 
 export default class Home extends React.Component {
+
   render() {
     return (
       <main className="home">
@@ -26,7 +27,7 @@ export default class Home extends React.Component {
         </div>
 
         <div>
-        <p>Or...</p>
+          <p>Or...</p>
           <button>Start A New Game</button>
         </div>
 

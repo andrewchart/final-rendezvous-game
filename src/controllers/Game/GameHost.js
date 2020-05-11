@@ -28,9 +28,29 @@ export default class GameHost {
 
     // Bind `this`
     this.addPlayer = this.addPlayer.bind(this);
+    this.resolveGameId = this.resolveGameId.bind(this);
     this.startGame = this.startGame.bind(this);
+    this.subscribeToGameUpdates = this.subscribeToGameUpdates.bind(this);
   }
 
+
+  /**
+   * If the host does not have an ID, create a new game and load it once created.
+   * Otherwise attempt to load the existing game by its ID.
+   * @return {Promise} Resolves to an instance of the GameData model or false
+   *                   on failure
+   */
+  resolveGameId() {
+
+    if(!this.gameId) {
+      return this.registerNewGame().then(() => {
+        return this.loadGame(this.gameId);
+      });
+    } else {
+      return this.loadGame(this.gameId);
+    }
+
+  }
 
   /**
    * Creates a new game on the server with a unique gameId.
@@ -120,6 +140,41 @@ export default class GameHost {
 
     });
 
+  }
+
+
+  /**
+   * Attempts to create a connection to the websocket server to subscribe to
+   * GameData changes.
+   * @return {Websocket} Websocket instance or null on failure
+   */
+  subscribeToGameUpdates(gameId) {
+
+    try {
+
+      const wsUrl = process.env.REACT_APP_WEBSOCKET_SERVER_CLIENT_URL + ":"
+                  + process.env.REACT_APP_WEBSOCKET_SERVER_PORT;
+
+      const ws = new WebSocket(wsUrl);
+
+      // Send an initial message
+      ws.onopen = () => {
+        ws.send(JSON.stringify({
+          messageType: 'SUBSCRIBE',
+          entity: 'games',
+          _id: gameId
+        }));
+      }
+
+      return ws;
+
+    } catch(err) {
+
+      console.log(err);
+      alert('Could not create a websocket connection!'); //TODO: Remove this and replace with polling mechanism over http
+      return null;
+
+    }
   }
 
 

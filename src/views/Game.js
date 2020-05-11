@@ -16,7 +16,7 @@ import Error from '../views/Error.js';
 
 
 /**
- * The Game view starts the rendering of a game UI by creating game data
+ * The Game view starts the rendering of a game UI by loading game data and state
  */
 export default class Game extends React.Component {
 
@@ -44,20 +44,24 @@ export default class Game extends React.Component {
   }
 
   /**
-   * Once the component is available and has a Game Host, create a new game and
-   * load it once created, or load an existing game by ID.
+   * React component lifecycle method
    */
   componentDidMount() {
 
-    if(!this.host.gameId) {
-      this.host.registerNewGame().then(() => {
-        this.host.loadGame(this.host.gameId);
-      });
-    } else {
-      this.host.loadGame(this.host.gameId);
-    }
+    // Now the component has mounted we can ask the host to create and load a new
+    // game with a unique ID or, if this is an existing game, load the gameData
+    // using the ID provided in the URL.
+    this.host.resolveGameId().then(() => {
+
+      // Then, establish a means of receiving live updates to the GameData and
+      // attach this to our Game View.
+      this.websocket = this.host.subscribeToGameUpdates(this.host.gameId);
+
+    });
 
   }
+
+
 
   getPreGameComponents() {
     return (

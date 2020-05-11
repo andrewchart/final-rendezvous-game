@@ -15,7 +15,7 @@ var db = new Database(dbUrl, dbOpts, dbName);
 
 // API Routes
 app.use('/api/:entity/:id?', (req, res)=>{
-  
+
   res.header("Access-Control-Allow-Origin", "*"); //TODO: remove this once front end and back end run on same server
 
   //Determine the correct middleware to resolve the request
@@ -23,6 +23,11 @@ app.use('/api/:entity/:id?', (req, res)=>{
   switch(req.params.entity) {
       case 'games':
         entityHandler = require('./api/games/index.js');
+        break;
+
+      //TODO REMOVE
+      case 'test':
+        entityHandler = require('./api/test/index.js');
         break;
 
       default:
