@@ -6,6 +6,7 @@ import GameHost from '../controllers/Game/GameHost.js';
 import GameController from '../controllers/Game/GameController.js';
 
 import Loading from '../ui_components/global/Loading.js';
+import PlayerName from '../ui_components/Game/PlayerName.js';
 
 import {
   AddPlayer,
@@ -67,6 +68,8 @@ export default class Game extends React.Component {
     return (
       <Fragment>
         <p>Pregame {this.host.gameId}</p>
+
+        <PlayerName name={this.props.location.state.playerName} />
 
         <form>
           <label htmlFor="player-name">
