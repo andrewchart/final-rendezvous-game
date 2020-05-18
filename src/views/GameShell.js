@@ -1,4 +1,4 @@
-import React, {Fragment} from 'react';
+import React from 'react';
 
 import {Provider} from 'react-redux';
 
@@ -6,20 +6,19 @@ import GameHost from '../controllers/Game/GameHost.js';
 import GameController from '../controllers/Game/GameController.js';
 
 import Loading from '../ui_components/global/Loading.js';
-import PlayerName from '../ui_components/Game/PlayerName.js';
-
-import {
-  AddPlayer,
-  StartGame
-} from '../ui_components/Game/PreGame.js';
+import PreGame from '../views/PreGame.js';
 
 import Error from '../views/Error.js';
 
 
 /**
- * The Game view starts the rendering of a game UI by loading game data and state
+ * The GameShell view is the parent view for a game from start to finish. It
+ * handles rendering of the game views including the PreGame view and the InGame
+ * views. Visually, this is a shell, but it carries controller classes to set up
+ * the game (GameHost) and to play the game (GameController) and handles the
+ * rendering of the game stages dependent on its own state.
  */
-export default class Game extends React.Component {
+export default class GameShell extends React.Component {
 
   constructor(props) {
     super(props);
@@ -62,29 +61,11 @@ export default class Game extends React.Component {
 
   }
 
-
-
-  getPreGameComponents() {
-    return (
-      <Fragment>
-        <p>Pregame {this.host.gameId}</p>
-
-        <PlayerName name={this.props.location.state.playerName} />
-
-        <form>
-          <label htmlFor="player-name">
-            Name:
-            <input type="text" id="player-name" value="" />
-          </label>
-          <AddPlayer onClick={this.host.addPlayer} />
-          <StartGame onClick={this.host.startGame} />
-        </form>
-      </Fragment>
-    );
-
+  getPreGameView() {
+    return <PreGame host={this.host} />;
   }
 
-  getInGameComponents() {
+  getInGameView() {
     return <div>In Game View <br /><br /></div>
   }
 
@@ -104,7 +85,7 @@ export default class Game extends React.Component {
     return (
       <Provider store={this.state.gameData}>
         <main className="game">
-        {this.state.gameHasStarted ? this.getInGameComponents() : this.getPreGameComponents() }
+        {this.state.gameHasStarted ? this.getInGameView() : this.getPreGameView() }
         </main>
       </Provider>
     );

@@ -73,6 +73,26 @@ class Database {
     }
   }
 
+  /**
+   * Appends data onto an array within a single document.
+   * @param  {String}  collection The database collection to target
+   * @param  {Object}  query      Query to match the individual document to be modified
+   *                              e.g. { _id: "ABCD"}
+   * @param  {String}  selector   String which targets the correct array in the
+   *                              document using dot notation e.g. `property` or
+   *                              `property.subproperty`.
+   * @param  {(Mixed)} data       The data to append to the array. Can be of any form
+   * @return {Boolean}            True on success or false on failure
+   */
+  async pushOne(collection, query, selector, data) {
+    try {
+      return await this.db.collection(collection).updateOne(query, { $push: {[selector]: data} });
+    } catch(error) {
+      console.log(error.stack);
+      return null;
+    }
+  }
+
   /* DEBUG -- TODO: REMOVE */
   async deleteAll(collection) {
     this.db.collection(collection).deleteMany({});

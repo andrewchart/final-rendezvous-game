@@ -1,5 +1,5 @@
 import React from 'react';
 
 export default function ValidationError(props) {
-  return <p className="ValidationError">{props.message}</p>;
+  return <p className="error validationError">{props.message}</p>;
 }

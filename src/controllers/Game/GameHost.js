@@ -62,7 +62,7 @@ export default class GameHost {
     return fetch(PATH_TO_API + '/games', { method: 'post' }).then(response => {
 
       // Throw error on bad response
-      if(response.status !== 200) {
+      if(response.status !== 201) {
         throw(new Error("Could not create new game"));
       }
 
@@ -178,9 +178,30 @@ export default class GameHost {
   }
 
 
-  addPlayer(e) {
-    this._view.state.gameData.dispatch({ type: "ADD_PLAYER", name: 'rand' });
-    e.preventDefault();
+  /**
+   * [addPlayer description]
+   * @param {String} name [description]
+   * @return {Player} Returns true on success or false on failure.
+   */
+  addPlayer(name) {
+
+    // Call API
+    return fetch(PATH_TO_API + '/games/' + this._gameId + '/players', {
+      method: 'post',
+      headers: { 'Content-Type': 'application/json' },
+      body: '{ "name": "' + name + '" }'
+    }).then(response => {
+      
+    }).catch(err => {
+
+      // this._view.setState({
+      //   gameIsValid: false,
+      //   loading: false
+      // });
+
+      return false;
+
+    });
   }
 
   removePlayer() {

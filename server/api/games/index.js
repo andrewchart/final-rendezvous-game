@@ -23,6 +23,12 @@ class GamesAPI {
    */
   async create() {
 
+    // Reject attempt to create a resource with a specific ID
+    if(this.req.params.entityId) {
+      errors.badRequest(this.res);
+      return;
+    }
+
     // Ensure the gameId is random and unique
     let gameId, unique;
     let i = 0;
@@ -38,7 +44,7 @@ class GamesAPI {
       // Defend against infinite loops in the unlikely event that there are no
       // gameIds available.
       if(i > 100) {
-        errors.serverError(this.res);
+        errors.serverError(this.res, "No game IDs available. Contact the website owner.");
         return;
       }
 
@@ -48,45 +54,47 @@ class GamesAPI {
 
     // Save to database
     let gameData = new GameData(gameId);
-    this.db.insertOne(gameData, 'games');
+    this.db.insertOne(gameData, 'games').then(result => {
+      return this.res.status(201).send({ _id: gameId });
+    }).catch(err => {
+      return errors.serverError(this.res, "Could not create new game in database");
+    });
 
-    return this.res.send({ _id: gameId });
   }
 
 
-  read(gameId) {
-    return this.db.findOne({ _id: gameId }, 'games').then(result => {
+  read() {
+
+    // Cannot read from an empty ID
+    if(!this.req.params.entityId) errors.badRequest(this.res);
+
+    return this.db.findOne({ _id: this.req.params.entityId }, 'games').then(result => {
       if(!result) return errors.notFound(this.res);
       return this.res.send(result);
     });
+
   }
 
   update() {
 
   }
 
+  /**
+   * Maps request methods to functions which resolve the API request
+   */
   resolve() {
-
     switch(this.req.method) {
-
-      case 'POST':
-        if(!this.req.params.id) {
-          this.create()
-          break;
-        }
+      case 'GET':
+        this.read();
+        break;
 
       case 'PATCH':
         //TODO
         break;
 
-      case 'GET':
-        if(this.req.params.id) {
-          this.read(this.req.params.id);
-          break;
-        }
-
-      default:
-        errors.badRequest(this.res);
+      case 'POST':
+        this.create()
+        break;
     }
   }
 

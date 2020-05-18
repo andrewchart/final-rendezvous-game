@@ -17,7 +17,7 @@ import Shell from './views/Shell.js';
 // Views
 import Home from './views/Home.js';
 import Error from './views/Error.js';
-const  Game = lazy(() => import('./views/Game.js'));
+const  GameShell = lazy(() => import('./views/GameShell.js'));
 
 //import * as serviceWorker from './serviceWorker';
 
@@ -29,7 +29,7 @@ ReactDOM.render(
           <Shell>
             <Switch>
 
-              <Route path="/game/:gameId?" component={Game} />
+              <Route path="/game/:gameId?" component={GameShell} />
 
               <Route path="/about">
                 <main>About</main>
