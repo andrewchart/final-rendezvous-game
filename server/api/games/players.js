@@ -67,23 +67,37 @@ class PlayersAPI {
 
 
     // Add player to the gameData in the database
+    let successCallback = () => {
+      //TODO: Call the websockets server
+      return this.res.status(201).send({ _id: playerData._id });
+    }
+
+    let errorCallback = () => {
+      return errors.serverError(this.res, "Could not create player in the database.");
+    }
+
     let playerData = new PlayerData(this.req.body.name);
-    this.db.pushOne(
+
+    return this.db.pushOne(
       'games', { _id: this.req.params.entityId },
       'players', playerData
     ).then(result => {
-      return this.res.status(201).send({ _id: playerData._id });
+
+      if(result) {
+        return successCallback();
+      } else {
+        return errorCallback();
+      }
+
     }).catch(err => {
-      return errors.serverError(this.res, "Could not create new player in database");
+      return errorCallback();
     });
 
-    // Tell the websockets server to ping everyone to pull an update
   }
 
 
   read() {
 
-    ;
     return;
 
     return this.db.findOne({ _id: gameId }, 'games').then(result => {
@@ -129,18 +143,20 @@ class PlayersAPI {
   }
 
 
-  // // UTILITIES
+  // UTILITIES
 
   /**
-   * TODO
-   * @param  {[type]} gameId [description]
-   * @return {[type]}        [description]
+   * Checks if the Game ID currently exists by querying the database for it.
+   * @param  {String} gameId  Unique identifier in the database for the game data.
+   * @return {Boolean}        Returns true if the game exists, false otherwise.
    */
   gameExists(gameId) {
-    const result = this.db.findOne({ _id: gameId }, 'games');
-    if(result) return true;
-    return false;
+    return this.db.findOne({ _id: gameId }, 'games').then(result => {
+      if(result) return true;
+      return false;
+    });
   }
+
 
   //
   // /**

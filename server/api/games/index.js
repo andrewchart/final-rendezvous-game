@@ -18,8 +18,8 @@ class GamesAPI {
 
   /**
    * Creates a new game in the database with a unique ID.
-   * @return {Promise} Resolves with gameId once the ID has been determined to
-   *                   be unique within the database.
+   * @return {Promise} Resolves by sending a server response indicating success
+   *                   or failure.
    */
   async create() {
 
@@ -54,7 +54,7 @@ class GamesAPI {
 
     // Save to database
     let gameData = new GameData(gameId);
-    this.db.insertOne(gameData, 'games').then(result => {
+    return this.db.insertOne(gameData, 'games').then(result => {
       return this.res.status(201).send({ _id: gameId });
     }).catch(err => {
       return errors.serverError(this.res, "Could not create new game in database");

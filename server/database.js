@@ -9,10 +9,10 @@ const assert = require('assert');
 class Database {
 
   /**
-   * Create a new database connection via the async connect() method
-   * @param {String} url        Url of the MongoDB Instance
-   * @param {Object} opts       MongoDB Init Options
-   * @param {String} name       Name of the database to connect to
+   * Create a new database connection via the async connect() method.
+   * @param {String} url        Url of the MongoDB Instance.
+   * @param {Object} opts       MongoDB Init Options.
+   * @param {String} name       Name of the database to connect to.
    */
   constructor(url, opts, name) {
     this.client = null;
@@ -47,16 +47,17 @@ class Database {
 
   /**
    * Insert a single document into a collection
-   * @param  {[type]} document   [description]
-   * @param  {[type]} collection [description]
-   * @return {String|null}       The ID of the inserted entry or null on failure
+   * @param  {Object} document   JSON formatted object of data to insert.
+   * @param  {String} collection The collection in which to insert the document.
+   * @return {Promise}           Resolves to the ID of the inserted entry or null
+   *                             on failure.
    */
   async insertOne(document, collection) {
 
     try {
-      const result = await this.db.collection(collection).insertOne(document);
-      assert.equal(1, result.insertedCount);
-      return result.insertedId;
+      const command = await this.db.collection(collection).insertOne(document);
+      assert.equal(1, command.insertedCount);
+      return command.insertedId;
     } catch(error) {
       console.log(error.stack);
       return null;
@@ -64,6 +65,14 @@ class Database {
 
   }
 
+
+  /**
+   * Finds the first result matching the query within a collection.
+   * @param  {Object}  query      Query to match the individual document to be found.
+   * @param  {String}  collection The collection in which to search for the document.
+   * @return {Promise}            Resolves to an object representation of the
+   *                              result or null if no result is found or on failure.
+   */
   async findOne(query, collection) {
     try {
       return await this.db.collection(collection).findOne(query);
@@ -72,6 +81,7 @@ class Database {
       return null;
     }
   }
+
 
   /**
    * Appends data onto an array within a single document.
@@ -82,40 +92,22 @@ class Database {
    *                              document using dot notation e.g. `property` or
    *                              `property.subproperty`.
    * @param  {(Mixed)} data       The data to append to the array. Can be of any form
-   * @return {Boolean}            True on success or false on failure
+   * @return {Promise}            Resolves to true on success or false on failure
    */
   async pushOne(collection, query, selector, data) {
     try {
-      return await this.db.collection(collection).updateOne(query, { $push: {[selector]: data} });
+      const command = await this.db.collection(collection).updateOne(query, {
+        $push: {[selector]: data}
+      });
+      if(command.modifiedCount === 1) return true;
+      return false;
     } catch(error) {
       console.log(error.stack);
-      return null;
+      return false;
     }
   }
 
-  /* DEBUG -- TODO: REMOVE */
-  async deleteAll(collection) {
-    this.db.collection(collection).deleteMany({});
-  }
 
-
-  /* DEBUG -- TODO: REMOVE */
-  logDb() {
-    console.log(2,this.db);
-  }
-
-  /* DEBUG -- TODO: REMOVE */
-  logCollection(collection) {
-    let currentCollection = this.db.collection(collection);
-
-    currentCollection.find({}).toArray(function(err, docs) {
-      if(err) throw(err)
-
-      console.log("Found the following records")
-      console.log(docs)
-
-    });
-  }
 }
 
 module.exports = Database;
