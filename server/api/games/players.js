@@ -197,15 +197,11 @@ class PlayersAPI {
   }
 
   playerIdIsUnique(id, players) {
-    return this.playerPropertyIsUnique('_id', players);
+    return players.filter(player => player._id === id).length > 0 ? false : true;
   }
 
   playerNameIsUnique(name, players) {
-    return this.playerPropertyIsUnique('name', players);
-  }
-
-  playerPropertyIsUnique(property, players) {
-    return true;
+    return players.filter(player => player.name === name).length > 0 ? false : true;
   }
 
 }
