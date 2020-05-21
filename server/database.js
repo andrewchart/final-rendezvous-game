@@ -70,12 +70,16 @@ class Database {
    * Finds the first result matching the query within a collection.
    * @param  {Object}  query      Query to match the individual document to be found.
    * @param  {String}  collection The collection in which to search for the document.
+   * @param  {Object}  projection A document describing the fields to return e.g.
+   *                              { fieldName: 1 }.
    * @return {Promise}            Resolves to an object representation of the
    *                              result or null if no result is found or on failure.
    */
-  async findOne(query, collection) {
+  async findOne(query, collection, projection = null) {
     try {
-      return await this.db.collection(collection).findOne(query);
+      return await this.db.collection(collection).findOne(query, {
+        projection: projection
+      });
     } catch(error) {
       console.log(error.stack);
       return null;
@@ -88,16 +92,16 @@ class Database {
    * @param  {String}  collection The database collection to target
    * @param  {Object}  query      Query to match the individual document to be modified
    *                              e.g. { _id: "ABCD"}
-   * @param  {String}  selector   String which targets the correct array in the
+   * @param  {String}  array      String which targets the correct array in the
    *                              document using dot notation e.g. `property` or
    *                              `property.subproperty`.
    * @param  {(Mixed)} data       The data to append to the array. Can be of any form
    * @return {Promise}            Resolves to true on success or false on failure
    */
-  async pushOne(collection, query, selector, data) {
+  async pushOne(collection, query, array, data) {
     try {
       const command = await this.db.collection(collection).updateOne(query, {
-        $push: {[selector]: data}
+        $push: {[array]: data}
       });
       if(command.modifiedCount === 1) return true;
       return false;

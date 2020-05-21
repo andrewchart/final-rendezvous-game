@@ -18,10 +18,10 @@ class PlayersAPI {
 
   /**
    * Creates a new player for the game specified
-   * @return {Promise} Resolves with playerId once it has been determined that
-   *                   the player has been successfully added to the correct
-   *                   game. Otherwise resolves to an error if the game ID was
-   *                   invalid or it was not possible to add the player.
+   * @return {Promise} Resolves by sending a server response with playerId once
+   *                   it has been determined that the player has been successfully
+   *                   added to the correct game. Responds withan error if the game
+   *                   ID was invalid or it was not possible to add the player.
    */
   async create() {
 
@@ -33,53 +33,74 @@ class PlayersAPI {
     }
 
     //Check the game ID exists
-    let exists = await this.gameExists(this.req.params.entityId);
+    let gameId = this.req.params.entityId;
+    let exists = await this.gameExists(gameId);
     if(!exists) {
-      errors.notFound(this.res, "Can't add player because game does not exist.");
-      return;
+      return errors.notFound(this.res, "Can't add player because game does not exist.");
     }
 
-    // Ensure the playerId is unique within the specific game
-    //
-    // Also check the player name is unqiue and append a number if not
-    //
-    // let gameId, unique;
-    // let i = 0;
-    //
-    // do {
-    //
-    //   // Generate a game code
-    //   gameId = this.createRandomGameCode(4);
-    //
-    //   // Check if the code is unique;
-    //   unique = await this.gameCodeIsUnique(gameId);
-    //
-    //   // Defend against infinite loops in the unlikely event that there are no
-    //   // gameIds available.
-    //   if(i > 100) {
-    //     errors.serverError(this.res);
-    //     return;
-    //   }
-    //
-    //   i++;
-    //
-    // } while(!unique);
-
-
-    // Add player to the gameData in the database
-    let successCallback = () => {
+    // Callbacks to successfully resolve or fail the create request
+    const successCallback = () => {
       //TODO: Call the websockets server
       return this.res.status(201).send({ _id: playerData._id });
     }
 
-    let errorCallback = () => {
+    const errorCallback = () => {
       return errors.serverError(this.res, "Could not create player in the database.");
     }
 
-    let playerData = new PlayerData(this.req.body.name);
+    // Get the current players array for the current game
+    let players = (await this.db.findOne(
+      { _id: gameId }, 'games',
+      { _id: 0, players: 1 }
+    )).players;
+
+    // Create a playerId and ensure it is unique within the specific game
+    let playerId, uniqueId;
+    let i = 0;
+
+    do {
+
+      // Generate a player ID
+      playerId = utils.randomIntBetween(100,999);
+
+      // Check if the code is unique;
+      uniqueId = await this.playerIdIsUnique(playerId, players);
+
+      // Defend against infinite loops in the unlikely event that there are no
+      // playerIds available.
+      if(i > 100) {
+        errorCallback();
+        return;
+      }
+
+      i++;
+
+    } while(!uniqueId);
+
+    // Also check the player name is unqiue and append a number if not
+    let playerName, uniqueName;
+    let j = 0;
+
+    do {
+
+      //Set appendix string for non unique player names
+      let append = (j === 0) ? "" : " (" + j + ")";
+
+      // Var for player name
+      playerName = this.req.body.name + append;
+
+      uniqueName = await this.playerNameIsUnique(playerName, players);
+
+      j++;
+
+    } while(!uniqueName)
+
+    // Add player to the gameData in the database
+    let playerData = new PlayerData(playerId, playerName);
 
     return this.db.pushOne(
-      'games', { _id: this.req.params.entityId },
+      'games', { _id: gameId },
       'players', playerData
     ).then(result => {
 
@@ -96,13 +117,31 @@ class PlayersAPI {
   }
 
 
-  read() {
+  /**
+   * Gets all current players in the database for a given game as an array of
+   * objects.
+   * @return {Promise} Resolves by sending a server response with an array of
+   *                   PlayerData objects (which may be empty) on success, or
+   *                   sending an error response on failure.
+   */
+  async read() {
+    let gameId = this.req.params.entityId;
 
-    return;
+    // Check the game ID exists
+    let exists = await this.gameExists(gameId);
+    if(!exists) {
+      return errors.notFound(this.res, "Can't retrieve players because game does not exist.");
+    }
 
-    return this.db.findOne({ _id: gameId }, 'games').then(result => {
-      if(!result) return errors.notFound(this.res);
-      return this.res.send(result);
+    // Retrieve players array from gameData
+    return this.db.findOne(
+      { _id: gameId }, 'games',
+      { _id: 0, players: 1 }
+    ).then(result => {
+      if(!result.players) return errors.notFound(this.res);
+      return this.res.send(result.players);
+    }).catch(err => {
+      return errors.serverError(this.res, "Error retrieving players from database.");
     });
   }
 
@@ -148,7 +187,7 @@ class PlayersAPI {
   /**
    * Checks if the Game ID currently exists by querying the database for it.
    * @param  {String} gameId  Unique identifier in the database for the game data.
-   * @return {Boolean}        Returns true if the game exists, false otherwise.
+   * @return {Promise}        Returns true if the game exists, false otherwise.
    */
   gameExists(gameId) {
     return this.db.findOne({ _id: gameId }, 'games').then(result => {
@@ -157,48 +196,17 @@ class PlayersAPI {
     });
   }
 
+  playerIdIsUnique(id, players) {
+    return this.playerPropertyIsUnique('_id', players);
+  }
 
-  //
-  // /**
-  //  * Creates a random string of capital letters between A and Z, without any
-  //  * vowels. These codes are used as unique room identifiers (game IDs).
-  //  * @param  {Int} len The length of the output string.
-  //  * @return {String}  The random output string.
-  //  */
-  // createRandomGameCode(len) {
-  //
-  //   let str = '';
-  //   let charRangeLow = 65;
-  //   let charRangeHigh = 90;
-  //
-  //   while(str.length < len) {
-  //     let char = utils.randomIntBetween(charRangeLow, charRangeHigh);
-  //
-  //     //Avoid vowels to avoid meaningful words (thanks Annika)
-  //     if([65,69,73,79,85].indexOf(char) !== -1) continue;
-  //
-  //     str += String.fromCharCode(char)
-  //   }
-  //   return str;
-  //
-  // }
-  //
-  // /**
-  //  * Checks a game code is unique by querying the database for that code.
-  //  * @param  {String} code The code to be checked.
-  //  * @return {Boolean}     Returns true if the code is unique, false on empty code
-  //  *                       or a code which is not unique.
-  //  */
-  // gameCodeIsUnique(code) {
-  //
-  //   if(!code) return false;
-  //
-  //   return this.db.findOne({ _id: code }, 'games').then(result => {
-  //     if(!result) return true;
-  //     return false;
-  //   }).then(unique => { return unique });
-  //
-  // }
+  playerNameIsUnique(name, players) {
+    return this.playerPropertyIsUnique('name', players);
+  }
+
+  playerPropertyIsUnique(property, players) {
+    return true;
+  }
 
 }
 

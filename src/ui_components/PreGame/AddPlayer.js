@@ -1,7 +1,5 @@
 import React from 'react';
 
-import PlayerName from './PlayerName.js';
-
 import ValidationError from '../global/ValidationError.js';
 
 import {
@@ -35,7 +33,7 @@ export default class AddPlayer extends React.Component {
    * @param  {SyntheticEvent} event React synthetic event.
    * @return {[type]}       [description]
    */
-  joinGame(event) {
+  async joinGame(event) {
 
     // Don't submit the form
     event.preventDefault();
@@ -46,17 +44,19 @@ export default class AddPlayer extends React.Component {
     // Reset validation errors if validation checks pass
     this.setState({ validationErrors: [] });
 
-    // Get a Player model object from the API
-    let player = this.props.host.addPlayer(this.state.playerName);
-    console.log("player", player);
+    // Ask the host to add the player
+    let result = await this.props.host.addPlayer(this.state.playerName);
 
-    if(player.id) {
+    if(result._id) {
       // set this player id in localstorage and view?
       // get updated gamedata (players only)
+      console.log(result)
       this.setState({ joined: true });
       return true;
     } else {
-      this.setState({ apiError: 'set this to error message returned' });
+      this.setState({
+        apiError: (result.message ? result.message : 'Could not add player to the game. Please try again.')
+      });
       return false;
     }
 

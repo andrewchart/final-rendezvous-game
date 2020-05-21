@@ -3,13 +3,16 @@ import React from 'react';
 import {connect} from 'react-redux';
 
 import AddPlayer from '../ui_components/PreGame/AddPlayer.js';
+import PlayerName from '../ui_components/PreGame/PlayerName.js';
 import ValidationError from '../ui_components/global/ValidationError.js';
 
 class PreGame extends React.Component {
 
   render() {
 
-    const playerNames = "";
+    const playerNames = this.props.players.map((player) => {
+      return <PlayerName key={player._id} name={player.name} />
+    });
 
     const addPlayerForm = <AddPlayer host={this.props.host} />;
 

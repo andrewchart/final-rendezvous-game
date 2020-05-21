@@ -6,24 +6,18 @@
  */
 class PlayerData {
 
-  constructor(name) {
-    this.name = name;
+  constructor(playerId, playerName) {
+    this._id = playerId;
+    this.name = playerName;
     return this.newPlayerState();
   }
 
   newPlayerState() {
     return {
-      _id: 1,
+      _id: this._id,
       name: this.name
     }
   }
-
-  // initXCity() {
-  //   // let numCities = Count unique cities minus 1
-  //   let numCities = 40; //TODO REMOVE
-  //   return utils.randomIntBetween(0, numCities);
-  // }
-
 
 }
 

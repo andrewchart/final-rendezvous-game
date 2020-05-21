@@ -86,7 +86,7 @@ export default class GameHost {
         loading: false
       });
 
-      return false;
+      return err;
 
     });
 
@@ -95,8 +95,8 @@ export default class GameHost {
   /**
    * Loads an existing game's game data using its gameId.
    * @param  {String}  gameId  A unique gameId
-   * @return {Promise | false} Resolves to an instance of the GameData model or
-   *                           false on failure
+   * @return {Promise | Error} Resolves to an instance of the GameData model or
+   *                           Error object on failure.
    */
   loadGame(gameId) {
 
@@ -136,7 +136,7 @@ export default class GameHost {
         loading: false
       });
 
-      return false;
+      return err;
 
     });
 
@@ -179,9 +179,10 @@ export default class GameHost {
 
 
   /**
-   * [addPlayer description]
-   * @param {String} name [description]
-   * @return {Player} Returns true on success or false on failure.
+   * Calls the Players API to add a player to the game
+   * @param  {String}          name The nickname the player provided.
+   * @return {Promise | Error}      Resolves to the created player's ID on success
+   *                                or Error object on failure.
    */
   addPlayer(name) {
 
@@ -191,16 +192,20 @@ export default class GameHost {
       headers: { 'Content-Type': 'application/json' },
       body: '{ "name": "' + name + '" }'
     }).then(response => {
-      
+
+      // Throw error on bad response
+      if(response.status !== 201) {
+        throw(new Error("Could not create player: " + name));
+      }
+
+      // Return the response
+      return response.json().then(json => {
+        return json;
+      })
+
     }).catch(err => {
-
-      // this._view.setState({
-      //   gameIsValid: false,
-      //   loading: false
-      // });
-
-      return false;
-
+      // Return the error message.
+      return err;
     });
   }
 
