@@ -21,18 +21,20 @@ class PreGame extends React.Component {
         <h3>Room ID: {this.props.gameId}</h3>
         <p>Share this room ID with your friends so they can join the game.</p>
 
-        {addPlayerForm}
+        {
+          this.props.players.length < 8 ? addPlayerForm :
+          <ValidationError message="You can have a maximum of 8 players per game" />
+        }
 
         <h3>Current Players</h3>
         <ul>{playerNames}</ul>
-
 
         {
           this.props.players.length < 2 &&
           <ValidationError message="You need a minimum of 2 players to start the game" />
         }
 
-        <button disabled={(this.props.players.length < 2)}>Start Game</button>
+        <button disabled={(this.props.players.length < 2 || this.props.players.length > 8)}>Start Game</button>
 
       </section>
     );

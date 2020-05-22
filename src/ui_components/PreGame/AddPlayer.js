@@ -118,9 +118,7 @@ export default class AddPlayer extends React.Component {
       );
 
     } else {
-
-      return(null);
-
+      return null;
     }
   }
 }
