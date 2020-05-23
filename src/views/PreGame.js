@@ -34,7 +34,9 @@ class PreGame extends React.Component {
           <ValidationError message="You need a minimum of 2 players to start the game" />
         }
 
-        <button disabled={(this.props.players.length < 2 || this.props.players.length > 8)}>Start Game</button>
+        <button
+          disabled={(!this.props.gameCanStart)}
+          onClick={this.props.host.startGame}>Start Game</button>
 
       </section>
     );
@@ -44,8 +46,9 @@ class PreGame extends React.Component {
 // Redux Store Data
 const mapStateToProps = (state) => {
   return {
-    gameId: state._id,
-    players: state.players
+    gameCanStart: state.gameShell.gameCanStart,
+    gameId: state.gameData._id,
+    players: state.gameData.players
   }
 }
 

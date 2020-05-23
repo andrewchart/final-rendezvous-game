@@ -1,6 +1,11 @@
 import React, {Suspense, lazy} from 'react';
 import ReactDOM from 'react-dom';
 
+// Redux
+import {createStore} from 'redux';
+import rootReducer from './redux/reducers';
+import {Provider} from 'react-redux';
+
 // Router
 import {
   BrowserRouter as Router,
@@ -18,6 +23,13 @@ import Error from './views/Error.js';
 const  GameShell = lazy(() => import('./views/GameShell.js'));
 const  Home = lazy(() => import('./views/Home.js'));
 
+// Set up Redux store
+const reduxDevtools = window.__REDUX_DEVTOOLS_EXTENSION__ && window.__REDUX_DEVTOOLS_EXTENSION__();
+const store = createStore(
+  rootReducer,
+  (process.env.NODE_ENV !== 'production') ? reduxDevtools : undefined
+);
+
 //import * as serviceWorker from './serviceWorker';
 
 ReactDOM.render(
@@ -25,30 +37,32 @@ ReactDOM.render(
     <Router>
       <ErrorBoundary>
         <Suspense fallback={<Loading />}>
-          <AppShell>
-            <Switch>
+          <Provider store={store}>
+            <AppShell>
+              <Switch>
 
-              <Route path="/game/:gameId?" component={GameShell} />
+                <Route path="/game/:gameId?" component={GameShell} />
 
-              <Route path="/about">
-                <main>About</main>
-              </Route>
+                <Route path="/about">
+                  <main>About</main>
+                </Route>
 
-              <Route path="/how-to-play">
-                <main>How To Play</main>
-              </Route>
+                <Route path="/how-to-play">
+                  <main>How To Play</main>
+                </Route>
 
-              <Route exact path="/">
-                <Home />
-              </Route>
+                <Route exact path="/">
+                  <Home />
+                </Route>
 
-              { /* Todo: server respond 404 */ }
-              <Route
-                path="*"
-                component={() => <Error type="404" />} />
+                { /* Todo: server respond 404 */ }
+                <Route
+                  path="*"
+                  component={() => <Error type="404" />} />
 
-            </Switch>
-          </AppShell>
+              </Switch>
+            </AppShell>
+          </Provider>
         </Suspense>
       </ErrorBoundary>
     </Router>

@@ -1,12 +1,21 @@
-import {createStore} from 'redux';
+// Redux action creators
+import {
+  setGameCanStart,
+  setGameHasStarted,
+  setGameIsValid,
+  setInitialGameData,
+  setLoading
+} from '../../redux/actions';
 
 // Allow the Game Host to manipulate history API
 import { createBrowserHistory } from 'history';
 const history = createBrowserHistory();
 
+// Game Data API
 const PATH_TO_API = process.env.REACT_APP_PATH_TO_API;
 
 /**
+ * TODO REWRITE
  * The Game Host manages the Game instance at a high level including creating a
  * new gameId, adding and removing players from a game, starting, ending and
  * deleting the game, and retrieving in-progress game data.
@@ -19,12 +28,12 @@ export default class GameHost {
 
   /**
    * Creates a new game Host class to control entry into a game.
-   * @param {String} gameId Unique identifier for this game
-   * @param {Object} view   The React view which is displaying the game
+   * @param {String}   gameId       Unique identifier for this game
+   * @param {Function} dispatchFunc Function used to dispatch actions to the Redux store
    */
-  constructor(gameId = '', view) {
+  constructor(gameId = '', dispatchFunc) {
     this._gameId = gameId.toUpperCase();
-    this._view = view;
+    this.dispatch = dispatchFunc;
 
     // Bind `this`
     this.addPlayer = this.addPlayer.bind(this);
@@ -81,10 +90,8 @@ export default class GameHost {
     // Handle all errors
     }).catch(err => {
 
-      this._view.setState({
-        gameIsValid: false,
-        loading: false
-      });
+      this.dispatch(setGameIsValid(false));
+      this.dispatch(setLoading(false));
 
       return err;
 
@@ -111,18 +118,9 @@ export default class GameHost {
       // Parse response object
       return response.json().then(json => {
 
-        // Create a Redux store to handle game data
-        let store = createStore(
-          () => { return json },
-          window.__REDUX_DEVTOOLS_EXTENSION__ && window.__REDUX_DEVTOOLS_EXTENSION__()
-        );
-
-        this._view.setState({
-          gameIsValid: true,
-          gameData: store,
-          gameCanStart: true,
-          loading: false
-        });
+        this.dispatch(setInitialGameData(json));
+        this.dispatch(setGameIsValid(true));
+        this.dispatch(setLoading(false));
 
         return json;
 
@@ -131,10 +129,8 @@ export default class GameHost {
     // Handle all errors
     }).catch(err => {
 
-      this._view.setState({
-        gameIsValid: false,
-        loading: false
-      });
+      this.dispatch(setGameIsValid(false));
+      this.dispatch(setLoading(false));
 
       return err;
 
@@ -214,7 +210,7 @@ export default class GameHost {
   }
 
   startGame() {
-    this._view.setState({gameHasStarted: true});
+    this.dispatch(setGameHasStarted(true));
   }
 
   endGame() {
