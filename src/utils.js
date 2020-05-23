@@ -22,7 +22,7 @@ function validateNotEmpty(value) {
 }
 
 // Export functions
-module.exports = {
+export {
   onChange,
   validateNotEmpty
 }
