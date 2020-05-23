@@ -1,23 +1,22 @@
 import React, {Suspense, lazy} from 'react';
 import ReactDOM from 'react-dom';
 
+// Router
 import {
   BrowserRouter as Router,
-  Switch,
-  Route
+  Route,
+  Switch
 } from 'react-router-dom';
 
 // Components
-import Loading from './ui_components/global/Loading.js';
 import ErrorBoundary from './ui_components/global/ErrorBoundary.js';
-
-// App Shell
-import Shell from './views/Shell.js';
+import Loading from './ui_components/global/Loading.js';
 
 // Views
-import Home from './views/Home.js';
+import AppShell from './views/AppShell.js';
 import Error from './views/Error.js';
 const  GameShell = lazy(() => import('./views/GameShell.js'));
+const  Home = lazy(() => import('./views/Home.js'));
 
 //import * as serviceWorker from './serviceWorker';
 
@@ -26,7 +25,7 @@ ReactDOM.render(
     <Router>
       <ErrorBoundary>
         <Suspense fallback={<Loading />}>
-          <Shell>
+          <AppShell>
             <Switch>
 
               <Route path="/game/:gameId?" component={GameShell} />
@@ -49,7 +48,7 @@ ReactDOM.render(
                 component={() => <Error type="404" />} />
 
             </Switch>
-          </Shell>
+          </AppShell>
         </Suspense>
       </ErrorBoundary>
     </Router>
