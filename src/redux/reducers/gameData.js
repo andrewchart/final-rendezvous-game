@@ -7,12 +7,21 @@
  */
 
 import {
+  ADD_PLAYER_TO_GAME_DATA,
   SET_INITIAL_GAME_DATA
 } from '../actions';
 
 export default function gameData(state = null, action) {
 
   switch(action.type) {
+
+    case ADD_PLAYER_TO_GAME_DATA:
+      return Object.assign({}, state, {
+        players: [
+          ...state.players,
+          action.player
+        ]
+      });
 
     case SET_INITIAL_GAME_DATA:
       return Object.assign({}, state, action.gameData);

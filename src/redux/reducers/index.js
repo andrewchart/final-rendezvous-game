@@ -3,6 +3,7 @@ import { combineReducers } from 'redux'
 // Import individual reducers
 import gameData from './gameData.js';
 import gameShell from './gameShell.js';
+import localPlayer from './localPlayer.js';
 
 /**
  * The root reducer defines the initial state of the application and passes on
@@ -11,5 +12,6 @@ import gameShell from './gameShell.js';
  */
 export default combineReducers({
   gameData,
-  gameShell
+  gameShell,
+  localPlayer
 });

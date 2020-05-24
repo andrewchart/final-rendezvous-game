@@ -1,5 +1,5 @@
 
-// Game Prefix
+// Game Namespace Prefix
 const GAME_PREFIX = process.env.REACT_APP_PREFIX;
 
 // Game Expiry Time

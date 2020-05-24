@@ -1,10 +1,12 @@
 // Redux action creators
 import {
+  addPlayerToGameData,
   setGameCanStart,
   setGameHasStarted,
   setGameIsValid,
   setInitialGameData,
-  setLoading
+  setLoading,
+  setLocalPlayerId
 } from '../../redux/actions';
 
 // Allow the Game Host to manipulate history API
@@ -121,8 +123,13 @@ export default class GameHost {
       // Parse response object
       return response.json().then(json => {
 
-        //check if the local player is already associated with this game
+        // Check if the local player is already associated with this game and get
+        // their playerId for this game if so.
+        let localPlayerId = this.initPlayer(gameId);
 
+        // Set the localPlayerID and gameData in the redux store and allow the
+        // user to interact with the UI
+        this.dispatch(setLocalPlayerId(localPlayerId));
         this.dispatch(setInitialGameData(json));
         this.dispatch(setGameIsValid(true));
         this.dispatch(setLoading(false));
@@ -180,6 +187,28 @@ export default class GameHost {
 
 
   /**
+   * Initates the correct state for a local player for the current game. If the
+   * local player is new to the current game, the state of 'localPlayer' in the
+   * Redux store will have no ID and therefore the player will be provided with
+   * the `ui_components\PreGame\AddPlayer.js` form to be able to join the game
+   * (as long as it hasn't started).
+   *
+   * However, if the player is coming back to the game having previously joined,
+   * the Redux store `localPlayer` state will be filled in by localStroage (set
+   * in `addPlayer()` and the)
+   * @param  {String} gameId  Unique identifier for the game to check in localStorage
+   * @return {Int | null}     Returns the player ID or null if they don't exist.
+   */
+  initPlayer(gameId) {
+    let entry = localStorage.getItem(GAME_PREFIX + 'playerId_' + gameId);
+    if(!entry) return null;
+
+    let json = JSON.parse(entry);
+    return '_id' in json ? json._id : null;
+  }
+
+
+  /**
    * Calls the Players API to add a player to the game
    * @param  {String}          name The nickname the player provided.
    * @return {Promise | Error}      Resolves to the created player's ID on success
@@ -188,7 +217,7 @@ export default class GameHost {
   addPlayer(name) {
 
     // Add the player's chosen nickname to localStorage for recall for future games
-    localStorage.setItem(GAME_PREFIX + "playerName", name);
+    localStorage.setItem(GAME_PREFIX + 'playerName', name);
 
     // Call API
     return fetch(PATH_TO_API + '/games/' + this._gameId + '/players', {
@@ -205,14 +234,20 @@ export default class GameHost {
       // Return the response
       return response.json().then(json => {
 
-        //Create an association in localStorage between the local player and their
-        //player ID for this game.
+        // Create an association in localStorage between the local player and their
+        // player ID for this game for future recall if the player leaves and rejoins.
         localStorage.setItem(GAME_PREFIX + 'playerId_' + this._gameId, JSON.stringify({
           _id: json._id,
           date: new Date()
         }));
 
-        //Set local player in redux
+        // Set local player ID in redux
+        this.dispatch(setLocalPlayerId(json._id));
+
+        // Immediately add a PlayerData Object to the local gameData for instant
+        // feedback that this has been successful (this will get updated from the
+        // server as other players join)
+        this.dispatch(addPlayerToGameData({ _id: json._id, name: name }));
 
 
         return json;
@@ -227,6 +262,7 @@ export default class GameHost {
   removePlayer() {
 
   }
+
 
   startGame() {
     this.dispatch(setGameHasStarted(true));

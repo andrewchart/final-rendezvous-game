@@ -7,14 +7,16 @@ import {
   validateNotEmpty
 } from '../../utils.js';
 
+// Game Namespace Prefix
+const GAME_PREFIX = process.env.REACT_APP_PREFIX;
+
 export default class AddPlayer extends React.Component {
 
   constructor(props) {
     super(props);
 
     this.state = {
-      joined: false,
-      playerName: '',
+      playerName: localStorage.getItem(GAME_PREFIX + "playerName") || '',
       validationErrors: [],
       apiError: ''
     }
@@ -48,10 +50,6 @@ export default class AddPlayer extends React.Component {
     let result = await this.props.host.addPlayer(this.state.playerName);
 
     if(result._id) {
-      // set this player id in localstorage and view?
-      // get updated gamedata (players only)
-
-      this.setState({ joined: true });
       return true;
     } else {
       this.setState({
@@ -96,29 +94,24 @@ export default class AddPlayer extends React.Component {
       return <ValidationError message={message} key={index} />;
     });
 
-    if(!this.state.joined) {
+    return (
+      <form onSubmit={this.joinGame}>
+        <h3>Join the game</h3>
 
-      return (
-        <form onSubmit={this.joinGame}>
-          <h3>Join the game</h3>
+        {validationErrors}
 
-          {validationErrors}
+        { this.state.apiError.length > 0 ? (<p className="error apiError">{this.state.apiError}</p>) : null }
 
-          { this.state.apiError.length > 0 ? (<p className="error apiError">{this.state.apiError}</p>) : null }
+        <div>
+          <label>
+            Your player name:
+            <input type="text" name="playerName" id="playerName" value={this.state.playerName} onChange={this.onChange} />
+            <input type="submit" value="Join game" />
+          </label>
+        </div>
 
-          <div>
-            <label>
-              Your player name:
-              <input type="text" name="playerName" id="playerName" onChange={this.onChange} />
-              <input type="submit" value="Join game" />
-            </label>
-          </div>
-
-        </form>
-      );
-
-    } else {
-      return null;
-    }
+      </form>
+    );
   }
+  
 }
