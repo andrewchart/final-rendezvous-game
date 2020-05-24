@@ -1,5 +1,6 @@
 import React from 'react';
 
 export default function PlayerName(props) {
-  return <li>{props.name}</li>;
+  const thatsYou = '';
+  return <li>{props.name}{thatsYou}</li>;
 }

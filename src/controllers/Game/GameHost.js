@@ -14,6 +14,9 @@ const history = createBrowserHistory();
 // Game Data API
 const PATH_TO_API = process.env.REACT_APP_PATH_TO_API;
 
+// Game Prefix
+const GAME_PREFIX = process.env.REACT_APP_PREFIX;
+
 /**
  * TODO REWRITE
  * The Game Host manages the Game instance at a high level including creating a
@@ -118,6 +121,8 @@ export default class GameHost {
       // Parse response object
       return response.json().then(json => {
 
+        //check if the local player is already associated with this game
+
         this.dispatch(setInitialGameData(json));
         this.dispatch(setGameIsValid(true));
         this.dispatch(setLoading(false));
@@ -182,6 +187,9 @@ export default class GameHost {
    */
   addPlayer(name) {
 
+    // Add the player's chosen nickname to localStorage for recall for future games
+    localStorage.setItem(GAME_PREFIX + "playerName", name);
+
     // Call API
     return fetch(PATH_TO_API + '/games/' + this._gameId + '/players', {
       method: 'post',
@@ -196,6 +204,17 @@ export default class GameHost {
 
       // Return the response
       return response.json().then(json => {
+
+        //Create an association in localStorage between the local player and their
+        //player ID for this game.
+        localStorage.setItem(GAME_PREFIX + 'playerId_' + this._gameId, JSON.stringify({
+          _id: json._id,
+          date: new Date()
+        }));
+
+        //Set local player in redux
+
+
         return json;
       })
 

@@ -50,7 +50,7 @@ export default class AddPlayer extends React.Component {
     if(result._id) {
       // set this player id in localstorage and view?
       // get updated gamedata (players only)
-      console.log(result)
+
       this.setState({ joined: true });
       return true;
     } else {
