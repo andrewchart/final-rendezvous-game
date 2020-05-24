@@ -30,6 +30,17 @@ export default class AddPlayer extends React.Component {
 
   }
 
+
+  /**
+   * React component lifecycle method
+   */
+  componentDidMount() {
+    // Focus on the "playerName" input form
+    let focusField = this.state.playerName.length > 0 ? 'joinGame' : 'playerName';
+    document.getElementById(focusField).focus();
+  }
+
+
   /**
    * Asks the game host to add this player to the game
    * @param  {SyntheticEvent} event React synthetic event.
@@ -106,12 +117,12 @@ export default class AddPlayer extends React.Component {
           <label>
             Your player name:
             <input type="text" name="playerName" id="playerName" value={this.state.playerName} onChange={this.onChange} />
-            <input type="submit" value="Join game" />
+            <input type="submit" name="joinGame" id="joinGame" value="Join game" />
           </label>
         </div>
 
       </form>
     );
   }
-  
+
 }

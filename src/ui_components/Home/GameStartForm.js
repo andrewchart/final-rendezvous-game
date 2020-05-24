@@ -32,6 +32,15 @@ export default class GameStartForm extends React.Component {
 
 
   /**
+   * React component lifecycle method
+   */
+  componentDidMount() {
+    // Focus on the "have a room ID" input form
+    document.getElementById("gameId").focus();
+  }
+
+
+  /**
    * Allows the user to join an existing game using its game ID.
    * @param  {SyntheticEvent} event React synthetic event.
    * @return {Boolean}              Returns true on success or false on failure.

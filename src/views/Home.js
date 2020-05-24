@@ -4,10 +4,6 @@ import GameStartForm from '../ui_components/Home/GameStartForm.js';
 
 export default class Home extends React.Component {
 
-  //constructor() {
-    // Set player name and ID from localstorage if it's available
-  //}
-
   render() {
     return (
       <main className="home">
