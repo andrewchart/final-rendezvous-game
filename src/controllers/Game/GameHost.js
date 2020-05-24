@@ -1,6 +1,7 @@
 // Redux action creators
 import {
   addPlayerToGameData,
+  removePlayerFromGameData,
   setGameCanStart,
   setGameHasStarted,
   setGameIsValid,
@@ -42,6 +43,7 @@ export default class GameHost {
 
     // Bind `this`
     this.addPlayer = this.addPlayer.bind(this);
+    this.removePlayer = this.removePlayer.bind(this);
     this.resolveGameId = this.resolveGameId.bind(this);
     this.startGame = this.startGame.bind(this);
     this.subscribeToGameUpdates = this.subscribeToGameUpdates.bind(this);
@@ -125,7 +127,7 @@ export default class GameHost {
 
         // Check if the local player is already associated with this game and get
         // their playerId for this game if so.
-        let localPlayerId = this.initPlayer(gameId);
+        let localPlayerId = this.initPlayer(gameId, json.players);
 
         // Set the localPlayerID and gameData in the redux store and allow the
         // user to interact with the UI
@@ -194,16 +196,33 @@ export default class GameHost {
    * (as long as it hasn't started).
    *
    * However, if the player is coming back to the game having previously joined,
-   * the Redux store `localPlayer` state will be filled in by localStroage (set
-   * in `addPlayer()` and the)
+   * the Redux store `localPlayer` state will be filled in with the value found
+   * in localStroage (set `addPlayer()`).
+   *
+   * Before returning, we check whether the ID in localStorage is still a member
+   * of this game. If not, we return as if the player is new and needs to join
+   * the game.
    * @param  {String} gameId  Unique identifier for the game to check in localStorage
+   * @param  {Array}  players Array of player objects from the GameData
    * @return {Int | null}     Returns the player ID or null if they don't exist.
    */
-  initPlayer(gameId) {
-    let entry = localStorage.getItem(GAME_PREFIX + 'playerId_' + gameId);
-    if(!entry) return null;
+  initPlayer(gameId, players) {
 
+    // Try and find an entry in localStorage for this gameId
+    let entry = localStorage.getItem(GAME_PREFIX + 'playerId_' + gameId);
+    if (!entry) return null;
+
+    // De-serialise the localStorage entry
     let json = JSON.parse(entry);
+
+    // If an entry is found, check that that playerId is still a member of the game.
+    // Remove the localStorage entry if not and return null
+    if (players.filter(player => player._id === json._id).length === 0) {
+      localStorage.removeItem(GAME_PREFIX + 'playerId_' + gameId);
+      return null;
+    }
+
+    // Otherwise return the ID
     return '_id' in json ? json._id : null;
   }
 
@@ -259,8 +278,40 @@ export default class GameHost {
     });
   }
 
-  removePlayer() {
+  removePlayer(playerId) {
 
+    // Call API
+    return fetch(PATH_TO_API + '/games/' + this._gameId + '/players/' + playerId, {
+      method: 'delete',
+      headers: { 'Content-Type': 'application/json' }
+    }).then(response => {
+
+      // Throw error on bad response
+      if(response.status !== 200) {
+        throw(new Error("Could not delete player: " + playerId));
+      }
+
+      // Handle a successful deletion
+      return response.json().then(json => {
+
+        // Delete the localStorage association between the local player and this gameId
+        localStorage.removeItem(GAME_PREFIX + 'playerId_' + this._gameId);
+
+        // Unset local player ID in redux
+        this.dispatch(setLocalPlayerId(null));
+
+        // Immediately remove the PlayerData Object from the local gameData for
+        // instant feedback that the delete has been successful (this will get
+        // updated from the server as other players join).
+        this.dispatch(removePlayerFromGameData(playerId));
+
+        return json;
+      })
+
+    }).catch(err => {
+      // Return the error message.
+      return err;
+    });
   }
 
 

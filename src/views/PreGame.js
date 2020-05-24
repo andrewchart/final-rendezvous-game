@@ -24,7 +24,7 @@ class PreGame extends React.Component {
 
         { this.getAddPlayerForm() }
 
-        <CurrentPlayers players={this.props.players} localPlayer={this.props.localPlayer} />
+        <CurrentPlayers players={this.props.players} localPlayer={this.props.localPlayer} host={this.props.host} />
 
         <button
           disabled={(!this.props.gameCanStart)}

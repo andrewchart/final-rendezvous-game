@@ -11,9 +11,14 @@ export default class CurrentPlayers extends React.Component {
           <h3>Current Players</h3>
           <ol>
           {
-            this.props.players.map((player) => {
-              let thatsYou = (this.props.localPlayer === player._id);
-              return <PlayerName key={player._id} name={player.name} thatsYou={thatsYou} />
+            this.props.players.map(player => {
+              return (
+                  <PlayerName
+                    key={player._id}
+                    player={player}
+                    thatsYou={this.props.localPlayer === player._id}
+                    removePlayer={this.props.host.removePlayer} />
+              );
             })
           }
           </ol>

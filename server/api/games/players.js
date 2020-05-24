@@ -149,7 +149,46 @@ class PlayersAPI {
 
   }
 
-  delete() {
+  /**
+   * Deletes a player from the game using the specified game and player IDs.
+   * @return {Promise} Resolves by sending a server response indicating a successful
+   *                   delete on success, or by sending an error response on failure.
+   */
+  async delete() {
+
+    let gameId = this.req.params.entityId;
+    let playerId = parseInt(this.req.params.propertyId);
+
+    // Reject attempts to delete a player without a specific gameId and playerId.
+    if(!gameId || !playerId) {
+      errors.badRequest(this.res);
+      return;
+    }
+
+    // Check the game ID exists
+    let gameExists = await this.gameExists(gameId);
+    if(!gameExists) {
+      return errors.notFound(this.res, "Can't delete player because game does not exist.");
+    }
+
+    // Attempt to remove the specified player from the GameData
+    return this.db.pullOne(
+      'games', { _id: gameId },
+      'players', { _id: playerId }
+    ).then(result => {
+
+      if(result) {
+        return this.res.send({ deleted: result });
+      } else {
+        return errors.notFound(
+          this.res,
+          `Could not delete player ${playerId} from ${gameId}. The player could not be found.`
+        );
+      }
+
+    }).catch(err => {
+      return errors.serverError(this.res, err.message);
+    });
 
   }
 
@@ -161,7 +200,7 @@ class PlayersAPI {
     switch(this.req.method) {
 
       case 'DELETE':
-        //TODO
+        this.delete();
         break;
 
       case 'GET':

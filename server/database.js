@@ -112,6 +112,33 @@ class Database {
   }
 
 
+  /**
+   * Removes an item from an array within a single document
+   * @param  {String}  collection The database collection to target
+   * @param  {Object}  query      Query to match the individual document to be modified
+   *                              e.g. { _id: "ABCD"}
+   * @param  {String}  array      String which targets the correct array in the
+   *                              document using dot notation e.g. `property` or
+   *                              `property.subproperty`.
+   * @param  {Object}  data       Object specifying the field name/s and criteria to
+   *                              match to constitute removing that entry from the
+   *                              array e.g. { name: "Georgia" }
+   * @return {Promise}            Resolves to true on success or false on failure
+   */
+  async pullOne(collection, query, array, data) {
+    try {
+      const command = await this.db.collection(collection).updateOne(query, {
+        $pull: {[array]: data}
+      });
+      if(command.modifiedCount === 1) return true;
+      return false;
+    } catch(error) {
+      console.log(error.stack);
+      return false;
+    }
+  }
+
+
 }
 
 module.exports = Database;
