@@ -42,14 +42,13 @@ class GameShell extends React.Component {
     // Now the component has mounted we can ask the host to create and load a new
     // game with a unique ID or, if this is an existing game, load the gameData
     // using the ID provided in the URL.
-    this.host.resolveGameId().then(() => {
+    this.host.resolveGameId();
 
-      // Then, establish a means of receiving live updates to the GameData and
-      // attach this to our Game View.
-      this.websocket = this.host.subscribeToGameUpdates(this.host.gameId);
+  }
 
-    });
-
+  componentWillUnmount() {
+    // Kill the websocket connection when the user leaves '/game/GAMEID'
+    this.host.websocket.close();
   }
 
   getPreGameView() {

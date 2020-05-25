@@ -41,6 +41,8 @@ export default class GameHost {
     this._gameId = gameId.toUpperCase();
     this.dispatch = dispatchFunc;
 
+    this.websocket = null;
+
     // Bind `this`
     this.addPlayer = this.addPlayer.bind(this);
     this.removePlayer = this.removePlayer.bind(this);
@@ -106,6 +108,7 @@ export default class GameHost {
 
   }
 
+
   /**
    * Loads an existing game's game data using its gameId.
    * @param  {String}  gameId  A unique gameId
@@ -136,6 +139,10 @@ export default class GameHost {
         this.dispatch(setGameIsValid(true));
         this.dispatch(setLoading(false));
 
+        // Subscribe the local player to game updates by connecting them to the
+        // websocket server
+        this.websocket = this.subscribeToGameUpdates(localPlayerId);
+
         return json;
 
       }).then(json => {return json});
@@ -150,41 +157,6 @@ export default class GameHost {
 
     });
 
-  }
-
-
-  /**
-   * Attempts to create a connection to the websocket server to subscribe to
-   * GameData changes.
-   * @return {Websocket} Websocket instance or null on failure
-   */
-  subscribeToGameUpdates(gameId) {
-
-    try {
-
-      const wsUrl = process.env.REACT_APP_WEBSOCKET_SERVER_CLIENT_URL + ":"
-                  + process.env.REACT_APP_WEBSOCKET_SERVER_PORT;
-
-      const ws = new WebSocket(wsUrl);
-
-      // Send an initial message
-      ws.onopen = () => {
-        ws.send(JSON.stringify({
-          messageType: 'SUBSCRIBE',
-          entity: 'games',
-          _id: gameId
-        }));
-      }
-
-      return ws;
-
-    } catch(err) {
-
-      console.log(err);
-      alert('Could not create a websocket connection!'); //TODO: Remove this and replace with polling mechanism over http
-      return null;
-
-    }
   }
 
 
@@ -268,6 +240,10 @@ export default class GameHost {
         // server as other players join)
         this.dispatch(addPlayerToGameData({ _id: json._id, name: name }));
 
+        // Update the websocket server to tell it that this socket now corresponds
+        // to a specific player ID.
+        this.updateSubscriptionToGameUpdates(json._id);
+
 
         return json;
       })
@@ -305,6 +281,10 @@ export default class GameHost {
         // updated from the server as other players join).
         this.dispatch(removePlayerFromGameData(playerId));
 
+        // Update the websocket server to tell it that this socket no longer
+        // corresponds to a specific player ID.
+        this.updateSubscriptionToGameUpdates(null);
+
         return json;
       })
 
@@ -322,6 +302,78 @@ export default class GameHost {
   endGame() {
 
   }
+
+
+   /**
+    * Attempts to create a connection to the websocket server to subscribe to
+    * GameData changes.
+    *
+    * When a person starts viewing a game url (`/game/GAMEID`) we create a
+    * connection between this client and the websockets server. This means that
+    * each client can start to see the PreGame data (primarily the list of
+    * players) get updated in realtime, even though they haven't yet necessarily
+    * joined the game.
+    *
+    * The connection persists whilst the browser is connected, and is killed at
+    * the end of the session. The connection can be updated with a new playerId
+    * or even gameId using `updateSubscriptionToGameUpdates()`.
+    *
+    * @param  {Int}    localPlayerId  Tells the websocket server what this client's
+    *                                 localPlayerId is within this game.
+    * @return {Websocket}             Websocket instance or null on failure.
+    */
+  subscribeToGameUpdates(localPlayerId) {
+
+    try {
+
+      const wsUrl = process.env.REACT_APP_WEBSOCKET_SERVER_CLIENT_URL + ":"
+                  + process.env.REACT_APP_WEBSOCKET_SERVER_PORT;
+
+      const ws = new WebSocket(wsUrl);
+
+      // Send a message to subscribe the client to the server's updates
+      ws.onopen = () => {
+        ws.send(JSON.stringify({
+          clientType: 'PLAYER',
+          messageType: 'SUBSCRIBE',
+          gameId: this._gameId,
+          playerId: localPlayerId
+        }));
+      }
+
+      return ws;
+
+    } catch(err) {
+
+      console.log(err);
+      alert('Could not create a websocket connection!'); //TODO: Remove this and replace with polling mechanism over http
+      return null;
+
+    }
+  }
+
+
+  /**
+   * Updates the existing websocket connection to have the most up to date gameId
+   * and playerId so that the player's current client connection to the websocket
+   * server is for the correct game and player.
+   * @param  {Int}  localPlayerId   Tells the websocket server what this client's
+   *                                localPlayerId is within this game.
+   * @return {undefined}
+   */
+  updateSubscriptionToGameUpdates(localPlayerId) {
+
+    if (!this.websocket) return;
+
+    return this.websocket.send(JSON.stringify({
+      clientType: 'PLAYER',
+      messageType: 'UPDATE',
+      gameId: this._gameId,
+      playerId: localPlayerId
+    }));
+
+  }
+
 
   // Getters and Setters
   get gameId() {

@@ -16,7 +16,9 @@ export default class Error extends React.Component {
 
       case "invalid_game":
         errorHeading = "Invalid Game ID";
-        errorMessage = "Sorry, we could not find that game ID.";
+        errorMessage = "Sorry, we could not find that game ID. Games expire " +
+                        process.env.REACT_APP_GAME_EXPIRES_AFTER_DAYS +
+                       " days after they are created.";
         showNewGame = true;
         break;
 
