@@ -48,7 +48,11 @@ class GameShell extends React.Component {
 
   componentWillUnmount() {
     // Kill the websocket connection when the user leaves '/game/GAMEID'
-    this.host.websocket.close();
+    try {
+      this.host.websocket.close();
+    } catch(err) {
+      // Do nothing. It's ok for the websocket not to be set
+    }
   }
 
   getPreGameView() {
