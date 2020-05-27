@@ -8,10 +8,6 @@ const server = new WebSocket.Server({ port: process.env.REACT_APP_WEBSOCKET_SERV
 
 server.on('connection', (ws, req) => {
 
-  // Bind `ws` (client's websocket connection) or `server` to mean `this` on helper functions
-  const apiServerMessageHandler = utils.apiServerMessageHandler.bind(ws);
-  const playerMessageHandler = utils.playerMessageHandler.bind(ws);
-
   // Set the handler for all incoming messages from the client user
   ws.on('message', message => {
 
@@ -19,22 +15,14 @@ server.on('connection', (ws, req) => {
 
     switch(message.clientType) {
       case 'PLAYER':
-        playerMessageHandler(message);
+        utils.playerMessageHandler(message, server, ws);
         break;
 
       case 'API_SERVER':
-        apiServerMessageHandler(message);
+        utils.apiServerMessageHandler(message, server);
         break;
     }
 
-    //TODO: Debug; remove
-    server.clients.forEach(client => {
-      console.log(client.gameId, client.playerId);
-    });
-    console.log('===================');
-
   });
-
-  return utils.sendMessageToPlayers(server.clients, { what: "What" });
 
 });
