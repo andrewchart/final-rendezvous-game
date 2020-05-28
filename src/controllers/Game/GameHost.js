@@ -214,7 +214,7 @@ export default class GameHost {
     return fetch(PATH_TO_API + '/games/' + this._gameId + '/players', {
       method: 'post',
       headers: { 'Content-Type': 'application/json' },
-      body: '{ "name": "' + name + '" }'
+      body: '{ "name": "' + name + '", "socketId": "' + this.websocket.socketId + '" }'
     }).then(response => {
 
       // Throw error on bad response
@@ -333,11 +333,18 @@ export default class GameHost {
 
       // Send a message to subscribe the client to the server's updates
       ws.onopen = () => {
+
+        // Attach a UUID to the socket on the client side
+        const { v4: uuidv4 } = require('uuid');
+        const uuid = uuidv4();
+        ws.socketId = uuid;
+
         ws.send(JSON.stringify({
           clientType: 'PLAYER',
           messageType: 'SUBSCRIBE',
           gameId: this._gameId,
-          playerId: localPlayerId
+          playerId: localPlayerId,
+          socketId: uuid, // Send the same UUID to the server side
         }));
       }
 
@@ -367,7 +374,7 @@ export default class GameHost {
 
     return this.websocket.send(JSON.stringify({
       clientType: 'PLAYER',
-      messageType: 'UPDATE',
+      messageType: 'UPDATE_SUBSCRIPTION',
       gameId: this._gameId,
       playerId: localPlayerId
     }));

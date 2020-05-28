@@ -44,7 +44,12 @@ function playerMessageHandler(message, server, socket) {
 
   switch(message.messageType) {
     case 'SUBSCRIBE':
-    case 'UPDATE':
+      socket.socketId = message.socketId; // Only set this on subscription
+      socket.gameId = message.gameId;
+      socket.playerId = message.playerId;
+      return socket;
+
+    case 'UPDATE_SUBSCRIPTION':
       socket.gameId = message.gameId;
       socket.playerId = message.playerId;
       return socket;
@@ -57,14 +62,16 @@ function playerMessageHandler(message, server, socket) {
 
 /**
  * Gets all the connected websocket clients that are subscribed to a particular
- * game, minus those whose playerIds we are not interested in.
+ * game, minus those whose players we are not interested in. The excluded players
+ * can be identified either by their playerId or websocket ID.
  * @param  {String}           gameId         Unique identifier for the game for
  *                                           which we want the websocket clients.
  * @param  {Websocket.Server} server         Websocket server containing information
  *                                           about all connected clients.
- * @param  {Array}            excludePlayers Array of integers for playerIDs within
- *                                           the game which should NOT receive the
- *                                           message.
+ * @param  {Array}            excludePlayers Array of integers or strings
+ *                                           containing playerIDs within the
+ *                                           game OR websocket UUIDs which
+ *                                           should NOT receive the message.
  * @return {Set}                             New set containing only the relevant
  *                                           websocket clients.
  */
@@ -72,9 +79,9 @@ function getClientsByGameId(gameId, server, excludePlayers=[]) {
   //TODO remove logging
   console.log('=========START==========');
   console.log('======All Clients=======');
-  server.clients.forEach(client => console.log(client.gameId, client.playerId));
+  server.clients.forEach(client => console.log(client.socketId, client.gameId, client.playerId));
 
-  console.log('======Game Clients======');
+  console.log('=====Target Clients=====');
 
   // Create a new set of clients
   const filtered = new Set();
@@ -83,13 +90,14 @@ function getClientsByGameId(gameId, server, excludePlayers=[]) {
   server.clients.forEach(client => {
     if(
       client.gameId === gameId &&
-      excludePlayers.indexOf(client.playerId) === -1
+      excludePlayers.indexOf(client.playerId) === -1 &&
+      excludePlayers.indexOf(client.socketId) === -1
     ) {
       filtered.add(client);
     }
   });
 
-  filtered.forEach(client => console.log(client.gameId, client.playerId));
+  filtered.forEach(client => console.log(client.socketId, client.gameId, client.playerId));
 
   console.log('==========END===========');
 

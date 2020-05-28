@@ -49,7 +49,14 @@ class PlayersAPI {
         data: {
           gameId: gameId,
           keys: ['players'],
-          excludePlayers: [playerData._id]
+          excludePlayers: [this.req.body.socketId] /* We don't need to update
+                                                      the player who made the
+                                                      create() call so pass
+                                                      their websocket ID to the
+                                                      WSS so it can be excluded
+                                                      from the notice to other
+                                                      players to pull server
+                                                      data */
         }
       });
 
@@ -198,9 +205,10 @@ class PlayersAPI {
           data: {
             gameId: gameId,
             keys: ['players'],
-            excludePlayers: [playerId] /* This should stop the removed player
-                                          getting the websocket update and
-                                          unnecessarily fetch()ing */
+            excludePlayers: [playerId] /* The delete call doesn't have a body but
+                                          we know the websocket will have the
+                                          player's ID attached so we can filter
+                                          by this instead for the delete(). */
           }
         });
 
