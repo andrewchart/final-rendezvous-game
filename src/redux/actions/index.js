@@ -9,6 +9,10 @@
  * Namespacing hints towards the reducer that handles the action. Actions that
  * apply to multiple reducers are not namespaced.
  *
+ * Values that start with `$` are used to indicate that data is being obtained
+ * from the serverside API and therefore lastUpdateFromServer should be updated.
+ * See `/src/redux/reducers/lastUpdateFromServer.js`.
+ *
  */
 
 // Action Types
@@ -31,8 +35,6 @@ export const setGameIsValid = makeActionCreator(SET_GAME_IS_VALID, 'bool');
 export const setInitialGameData = makeActionCreator(SET_INITIAL_GAME_DATA, 'gameData')
 export const setLoading = makeActionCreator(SET_LOADING, 'bool');
 export const setLocalPlayerId = makeActionCreator(SET_LOCAL_PLAYER_ID, 'id');
-
-
 
 
 /**

@@ -19,6 +19,7 @@ server.on('connection', (ws, req) => {
         break;
 
       case 'API_SERVER':
+        console.log('api serv message');
         utils.apiServerMessageHandler(message, server);
         break;
     }

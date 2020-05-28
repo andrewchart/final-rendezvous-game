@@ -5,12 +5,29 @@
 
 /**
  * Defines logic for handling messages coming from the API server.
- * @param {WebSocket.Server} server
+ * @param {WebSocket.Server} server   The Websockets server which contains information
+ *                                    about all connected clients.
  * @param {String}           message  Serialized JSON object with a generic message for
  *                                    the Websockets server.
  */
 function apiServerMessageHandler(message, server) {
-  console.log("asmh", message)
+
+  switch(message.messageType) {
+    case 'UPDATE_GAME_DATA':
+      return sendMessageToPlayers(
+        {
+          messageType: 'UPDATE_GAME_DATA',
+          data: {
+            all: false,
+            keys: message.keys
+          }
+        },
+        getClientsByGameId(message.data.gameId, server, message.data.excludePlayers)
+      );
+
+    default:
+      return;
+  }
 }
 
 
@@ -30,12 +47,6 @@ function playerMessageHandler(message, server, socket) {
     case 'UPDATE':
       socket.gameId = message.gameId;
       socket.playerId = message.playerId;
-
-      // TODO Remove
-      sendMessageToPlayers(
-        { message: "Got your message " + message.playerId + " " + message.gameId + "!" },
-        getClientsByGameId(message.gameId, server)
-      );
       return socket;
 
     default:

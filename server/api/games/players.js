@@ -41,7 +41,19 @@ class PlayersAPI {
 
     // Callbacks to successfully resolve or fail the create request
     const successCallback = () => {
-      //TODO: Call the websockets server
+
+      // Call the websockets server to tell all other clients to pull the updated data
+      utils.sendMessageToWebsocketsServer({
+        clientType: 'API_SERVER',
+        messageType: 'UPDATE_GAME_DATA',
+        data: {
+          gameId: gameId,
+          keys: ['players'],
+          excludePlayers: [playerData._id]
+        }
+      });
+
+      // Server response
       return this.res.status(201).send({ _id: playerData._id });
     }
 
@@ -178,6 +190,20 @@ class PlayersAPI {
     ).then(result => {
 
       if(result) {
+
+        // Call the websockets server to tell all other clients to pull the updated data
+        utils.sendMessageToWebsocketsServer({
+          clientType: 'API_SERVER',
+          messageType: 'UPDATE_GAME_DATA',
+          data: {
+            gameId: gameId,
+            keys: ['players'],
+            excludePlayers: [playerId] /* This should stop the removed player
+                                          getting the websocket update and
+                                          unnecessarily fetch()ing */
+          }
+        });
+
         return this.res.send({ deleted: result });
       } else {
         return errors.notFound(

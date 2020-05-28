@@ -9,7 +9,7 @@
 import {
   ADD_PLAYER_TO_GAME_DATA,
   REMOVE_PLAYER_FROM_GAME_DATA,
-  SET_INITIAL_GAME_DATA //TODO, prefix with server?
+  SET_INITIAL_GAME_DATA
 } from '../actions';
 
 export default function gameData(state = null, action) {
