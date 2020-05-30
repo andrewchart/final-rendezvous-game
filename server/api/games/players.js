@@ -48,7 +48,7 @@ class PlayersAPI {
         messageType: 'UPDATE_GAME_DATA',
         data: {
           gameId: gameId,
-          keys: ['players'],
+          fields: ['players'],
           excludePlayers: [this.req.body.socketId] /* We don't need to update
                                                       the player who made the
                                                       create() call so pass
@@ -204,7 +204,7 @@ class PlayersAPI {
           messageType: 'UPDATE_GAME_DATA',
           data: {
             gameId: gameId,
-            keys: ['players'],
+            fields: ['players'],
             excludePlayers: [playerId] /* The delete call doesn't have a body but
                                           we know the websocket will have the
                                           player's ID attached so we can filter

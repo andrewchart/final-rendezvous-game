@@ -24,6 +24,7 @@ export const SET_GAME_IS_VALID = 'gameShell/SET_GAME_IS_VALID';
 export const SET_INITIAL_GAME_DATA = '$' + 'gameData/SET_INITIAL_GAME_DATA';
 export const SET_LOADING = 'SET_LOADING';
 export const SET_LOCAL_PLAYER_ID = 'localPlayer/SET_LOCAL_PLAYER_ID';
+export const UPDATE_GAME_DATA = '$' + 'gameData/UPDATE_GAME_DATA';
 
 
 // Action Creators
@@ -35,6 +36,7 @@ export const setGameIsValid = makeActionCreator(SET_GAME_IS_VALID, 'bool');
 export const setInitialGameData = makeActionCreator(SET_INITIAL_GAME_DATA, 'gameData')
 export const setLoading = makeActionCreator(SET_LOADING, 'bool');
 export const setLocalPlayerId = makeActionCreator(SET_LOCAL_PLAYER_ID, 'id');
+export const updateGameData = makeActionCreator(UPDATE_GAME_DATA, 'gameData');
 
 
 /**

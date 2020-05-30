@@ -9,7 +9,8 @@
 import {
   ADD_PLAYER_TO_GAME_DATA,
   REMOVE_PLAYER_FROM_GAME_DATA,
-  SET_INITIAL_GAME_DATA
+  SET_INITIAL_GAME_DATA,
+  UPDATE_GAME_DATA
 } from '../actions';
 
 export default function gameData(state = null, action) {
@@ -32,6 +33,7 @@ export default function gameData(state = null, action) {
       });
 
     case SET_INITIAL_GAME_DATA:
+    case UPDATE_GAME_DATA:
       return Object.assign({}, state, action.gameData);
 
     default:

@@ -7,7 +7,8 @@ import {
   setGameIsValid,
   setInitialGameData,
   setLoading,
-  setLocalPlayerId
+  setLocalPlayerId,
+  updateGameData
 } from '../../redux/actions';
 
 // Allow the Game Host to manipulate history API
@@ -25,10 +26,6 @@ const GAME_PREFIX = process.env.REACT_APP_PREFIX;
  * The Game Host manages the Game instance at a high level including creating a
  * new gameId, adding and removing players from a game, starting, ending and
  * deleting the game, and retrieving in-progress game data.
- *
- * The host communicates with the server to exchange the game data using the
- * DataExchange utility class static methods as helpers to facilitate this.
- *
  */
 export default class GameHost {
 
@@ -110,7 +107,7 @@ export default class GameHost {
 
 
   /**
-   * Loads an existing game's game data using its gameId.
+   * Loads an existing game's game data using its gameId and primes the UI state.
    * @param  {String}  gameId  A unique gameId
    * @return {Promise | Error} Resolves to an instance of the GameData model or
    *                           Error object on failure.
@@ -155,6 +152,51 @@ export default class GameHost {
 
       return err;
 
+    });
+
+  }
+
+  /**
+   * Retrieves game data from the server based on an instruction from the
+   * websocket server. The WSS tells the host which fields to retrieve and
+   * update, minimising the payloads that each client has to pull from the API.
+   * @param  {Object}          message Message from websocket server, parsed as JSON
+   * @return {Promise | Error}         Resolves to the gamedata field/s requested
+   *                                   or an Error object on failure.
+   */
+  updateGameData(message) {
+
+    // Create an empty string ready to take a `fields` query parameter
+    let fields = "";
+
+    // If the message contains a fields array, construct a query string out of it.
+    if (
+      Array.isArray(message.data.fields) &&
+      message.data.fields.length > 0 &&
+      !message.data.all
+    ) {
+      fields = "?fields=" + message.data.fields.toString();
+    }
+
+
+    // Call API to get desired data.
+    return fetch(PATH_TO_API + '/games/' + this._gameId + fields).then(response => {
+
+      // Throw error on bad response
+      if(response.status !== 200) {
+        throw(new Error("Could not get game ID: " + this._gameId));
+      }
+
+      // Parse response object
+      return response.json().then(json => {
+        // Update the redux store with the new gameData
+        this.dispatch(updateGameData(json));
+        return json;
+      });
+
+    // Handle errors quietly
+    }).catch(err => {
+      return err;
     });
 
   }
@@ -331,7 +373,7 @@ export default class GameHost {
 
       const ws = new WebSocket(wsUrl);
 
-      // Send a message to subscribe the client to the server's updates
+      // Send a message to the WSS to subscribe the client to the server's updates
       ws.onopen = () => {
 
         // Attach a UUID to the socket on the client side
@@ -344,8 +386,20 @@ export default class GameHost {
           messageType: 'SUBSCRIBE',
           gameId: this._gameId,
           playerId: localPlayerId,
-          socketId: uuid, // Send the same UUID to the server side
+          socketId: uuid // Send the same UUID to the server side
         }));
+      }
+
+      // Create a message handler for inbound messages from the WSS
+      ws.onmessage = (event) => {
+        let message = JSON.parse(event.data);
+        switch(message.messageType) {
+          case 'UPDATE_GAME_DATA':
+            return this.updateGameData(message);
+
+          default:
+            return;
+        }
       }
 
       return ws;

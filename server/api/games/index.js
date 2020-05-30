@@ -62,13 +62,38 @@ class GamesAPI {
 
   }
 
-
+  /**
+   * Read game data from the server. Supply a query string with the key `fields`
+   * to read selected field/s only from the game data.
+   * @return {undefined} Finishes by sending the json response to the client
+   */
   read() {
 
     // Cannot read from an empty ID
     if(!this.req.params.entityId) errors.badRequest(this.res);
 
-    return this.db.findOne({ _id: this.req.params.entityId }, 'games').then(result => {
+    // Create an empty projection
+    let projection = {};
+
+    // If the request contains a fields query parameter with comma separated field
+    // names, translate this into a projection object
+    if(this.req.query.fields) {
+
+      let validFields = new GameData();
+      let fields = this.req.query.fields.split(",");
+
+      fields.forEach(field => {
+        // Ignore unknown fields
+        if (!(field in validFields)) return;
+
+        // Add the field to the projection object
+        projection[field] = 1
+      });
+
+    }
+
+    // Retrieve the result
+    return this.db.findOne({ _id: this.req.params.entityId }, 'games', projection).then(result => {
       if(!result) return errors.notFound(this.res);
       return this.res.send(result);
     });

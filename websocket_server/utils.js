@@ -19,7 +19,7 @@ function apiServerMessageHandler(message, server) {
           messageType: 'UPDATE_GAME_DATA',
           data: {
             all: false,
-            keys: message.keys
+            fields: message.data.fields
           }
         },
         getClientsByGameId(message.data.gameId, server, message.data.excludePlayers)
