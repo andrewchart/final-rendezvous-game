@@ -156,6 +156,7 @@ export default class GameHost {
 
   }
 
+
   /**
    * Retrieves game data from the server based on an instruction from the
    * websocket server. The WSS tells the host which fields to retrieve and
@@ -198,6 +199,96 @@ export default class GameHost {
     }).catch(err => {
       return err;
     });
+
+  }
+
+
+   /**
+    * Attempts to create a connection to the websocket server to subscribe to
+    * GameData changes.
+    *
+    * When a person starts viewing a game url (`/game/GAMEID`) we create a
+    * connection between this client and the websockets server. This means that
+    * each client can start to see the PreGame data (primarily the list of
+    * players) get updated in realtime, even though they haven't yet necessarily
+    * joined the game.
+    *
+    * The connection persists whilst the browser is connected, and is killed at
+    * the end of the session. The connection can be updated with a new playerId
+    * or even gameId using `updateSubscriptionToGameUpdates()`.
+    *
+    * @param  {Int}    localPlayerId  Tells the websocket server what this client's
+    *                                 localPlayerId is within this game.
+    * @return {Websocket}             Websocket instance or null on failure.
+    */
+  subscribeToGameUpdates(localPlayerId) {
+
+    try {
+
+      const wsUrl = process.env.REACT_APP_WEBSOCKET_SERVER_CLIENT_URL + ":"
+                  + process.env.REACT_APP_WEBSOCKET_SERVER_PORT;
+
+      const ws = new WebSocket(wsUrl);
+
+      // Send a message to the WSS to subscribe the client to the server's updates
+      ws.onopen = () => {
+
+        // Attach a UUID to the socket on the client side
+        const { v4: uuidv4 } = require('uuid');
+        const uuid = uuidv4();
+        ws.socketId = uuid;
+
+        ws.send(JSON.stringify({
+          clientType: 'PLAYER',
+          messageType: 'SUBSCRIBE',
+          gameId: this._gameId,
+          playerId: localPlayerId,
+          socketId: uuid // Send the same UUID to the server side
+        }));
+      }
+
+      // Create a message handler for inbound messages from the WSS
+      ws.onmessage = (event) => {
+        let message = JSON.parse(event.data);
+        switch(message.messageType) {
+          case 'UPDATE_GAME_DATA':
+            return this.updateGameData(message);
+
+          default:
+            return;
+        }
+      }
+
+      return ws;
+
+    } catch(err) {
+
+      console.log(err);
+      alert('Could not create a websocket connection!'); //TODO: Remove this and replace with polling mechanism over http
+      return null;
+
+    }
+  }
+
+
+  /**
+   * Updates the existing websocket connection to have the most up to date gameId
+   * and playerId so that the player's current client connection to the websocket
+   * server is for the correct game and player.
+   * @param  {Int}  localPlayerId   Tells the websocket server what this client's
+   *                                localPlayerId is within this game.
+   * @return {undefined}
+   */
+  updateSubscriptionToGameUpdates(localPlayerId) {
+
+    if (!this.websocket) return;
+
+    return this.websocket.send(JSON.stringify({
+      clientType: 'PLAYER',
+      messageType: 'UPDATE_SUBSCRIPTION',
+      gameId: this._gameId,
+      playerId: localPlayerId
+    }));
 
   }
 
@@ -342,96 +433,6 @@ export default class GameHost {
   }
 
   endGame() {
-
-  }
-
-
-   /**
-    * Attempts to create a connection to the websocket server to subscribe to
-    * GameData changes.
-    *
-    * When a person starts viewing a game url (`/game/GAMEID`) we create a
-    * connection between this client and the websockets server. This means that
-    * each client can start to see the PreGame data (primarily the list of
-    * players) get updated in realtime, even though they haven't yet necessarily
-    * joined the game.
-    *
-    * The connection persists whilst the browser is connected, and is killed at
-    * the end of the session. The connection can be updated with a new playerId
-    * or even gameId using `updateSubscriptionToGameUpdates()`.
-    *
-    * @param  {Int}    localPlayerId  Tells the websocket server what this client's
-    *                                 localPlayerId is within this game.
-    * @return {Websocket}             Websocket instance or null on failure.
-    */
-  subscribeToGameUpdates(localPlayerId) {
-
-    try {
-
-      const wsUrl = process.env.REACT_APP_WEBSOCKET_SERVER_CLIENT_URL + ":"
-                  + process.env.REACT_APP_WEBSOCKET_SERVER_PORT;
-
-      const ws = new WebSocket(wsUrl);
-
-      // Send a message to the WSS to subscribe the client to the server's updates
-      ws.onopen = () => {
-
-        // Attach a UUID to the socket on the client side
-        const { v4: uuidv4 } = require('uuid');
-        const uuid = uuidv4();
-        ws.socketId = uuid;
-
-        ws.send(JSON.stringify({
-          clientType: 'PLAYER',
-          messageType: 'SUBSCRIBE',
-          gameId: this._gameId,
-          playerId: localPlayerId,
-          socketId: uuid // Send the same UUID to the server side
-        }));
-      }
-
-      // Create a message handler for inbound messages from the WSS
-      ws.onmessage = (event) => {
-        let message = JSON.parse(event.data);
-        switch(message.messageType) {
-          case 'UPDATE_GAME_DATA':
-            return this.updateGameData(message);
-
-          default:
-            return;
-        }
-      }
-
-      return ws;
-
-    } catch(err) {
-
-      console.log(err);
-      alert('Could not create a websocket connection!'); //TODO: Remove this and replace with polling mechanism over http
-      return null;
-
-    }
-  }
-
-
-  /**
-   * Updates the existing websocket connection to have the most up to date gameId
-   * and playerId so that the player's current client connection to the websocket
-   * server is for the correct game and player.
-   * @param  {Int}  localPlayerId   Tells the websocket server what this client's
-   *                                localPlayerId is within this game.
-   * @return {undefined}
-   */
-  updateSubscriptionToGameUpdates(localPlayerId) {
-
-    if (!this.websocket) return;
-
-    return this.websocket.send(JSON.stringify({
-      clientType: 'PLAYER',
-      messageType: 'UPDATE_SUBSCRIPTION',
-      gameId: this._gameId,
-      playerId: localPlayerId
-    }));
 
   }
 
