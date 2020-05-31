@@ -26,22 +26,30 @@ const GAME_PREFIX = process.env.REACT_APP_PREFIX;
  * The Game Host manages the Game instance at a high level including creating a
  * new gameId, adding and removing players from a game, starting, ending and
  * deleting the game, and retrieving in-progress game data.
+ *
+ * This class largely exists to decouple pre-game logic from the GameShell view
  */
 export default class GameHost {
 
   /**
    * Creates a new game Host class to control entry into a game.
-   * @param {String}   gameId       Unique identifier for this game
-   * @param {Function} dispatchFunc Function used to dispatch actions to the Redux store
+   * @param {React.Component} view The React Component which is controlled by this host
    */
-  constructor(gameId = '', dispatchFunc) {
-    this._gameId = gameId.toUpperCase();
-    this.dispatch = dispatchFunc;
+  constructor(view) {
+
+    // Allow the host to read and write from the view
+    this._view = view;
+
+    this.gameId = (
+      view.props.match.params.gameId ?
+      view.props.match.params.gameId.toUpperCase() : null
+    );
 
     this.websocket = null;
 
     // Bind `this`
     this.addPlayer = this.addPlayer.bind(this);
+    this.gameCanStart = this.gameCanStart.bind(this);
     this.removePlayer = this.removePlayer.bind(this);
     this.resolveGameId = this.resolveGameId.bind(this);
     this.startGame = this.startGame.bind(this);
@@ -84,10 +92,10 @@ export default class GameHost {
       //Parse response object
       return response.json().then(json => {
 
-        this._gameId = json._id;
+        this.gameId = json._id;
 
         // Change the url in the url bar and the history without refreshing the page
-        history.replace("/game/" + this._gameId, "newGameIdRegistered");
+        history.replace("/game/" + this.gameId, "newGameIdRegistered");
 
         return json;
 
@@ -96,8 +104,8 @@ export default class GameHost {
     // Handle all errors
     }).catch(err => {
 
-      this.dispatch(setGameIsValid(false));
-      this.dispatch(setLoading(false));
+      this._view.props.dispatch(setGameIsValid(false));
+      this._view.props.dispatch(setLoading(false));
 
       return err;
 
@@ -129,12 +137,18 @@ export default class GameHost {
         // their playerId for this game if so.
         let localPlayerId = this.initPlayer(gameId, json.players);
 
-        // Set the localPlayerID and gameData in the redux store and allow the
-        // user to interact with the UI
-        this.dispatch(setLocalPlayerId(localPlayerId));
-        this.dispatch(setInitialGameData(json));
-        this.dispatch(setGameIsValid(true));
-        this.dispatch(setLoading(false));
+        // Set the localPlayerID and gameData in the redux store
+        this._view.props.dispatch(setLocalPlayerId(localPlayerId));
+        this._view.props.dispatch(setInitialGameData(json));
+
+        // Confirm to the UI that the game ID is valid
+        this._view.props.dispatch(setGameIsValid(true));
+
+        // Check if the game can start and update the UI if it can
+        this._view.props.dispatch(setGameCanStart(this.gameCanStart()));
+
+        // Remove the loading screen
+        this._view.props.dispatch(setLoading(false));
 
         // Subscribe the local player to game updates by connecting them to the
         // websocket server
@@ -147,8 +161,8 @@ export default class GameHost {
     // Handle all errors
     }).catch(err => {
 
-      this.dispatch(setGameIsValid(false));
-      this.dispatch(setLoading(false));
+      this._view.props.dispatch(setGameIsValid(false));
+      this._view.props.dispatch(setLoading(false));
 
       return err;
 
@@ -181,17 +195,22 @@ export default class GameHost {
 
 
     // Call API to get desired data.
-    return fetch(PATH_TO_API + '/games/' + this._gameId + fields).then(response => {
+    return fetch(PATH_TO_API + '/games/' + this.gameId + fields).then(response => {
 
       // Throw error on bad response
       if(response.status !== 200) {
-        throw(new Error("Could not get game ID: " + this._gameId));
+        throw(new Error("Could not get game ID: " + this.gameId));
       }
 
       // Parse response object
       return response.json().then(json => {
+
         // Update the redux store with the new gameData
-        this.dispatch(updateGameData(json));
+        this._view.props.dispatch(updateGameData(json));
+
+        // Check if the game can start and update the UI if it can
+        this._view.props.dispatch(setGameCanStart(this.gameCanStart()));
+
         return json;
       });
 
@@ -241,7 +260,7 @@ export default class GameHost {
         ws.send(JSON.stringify({
           clientType: 'PLAYER',
           messageType: 'SUBSCRIBE',
-          gameId: this._gameId,
+          gameId: this.gameId,
           playerId: localPlayerId,
           socketId: uuid // Send the same UUID to the server side
         }));
@@ -286,7 +305,7 @@ export default class GameHost {
     return this.websocket.send(JSON.stringify({
       clientType: 'PLAYER',
       messageType: 'UPDATE_SUBSCRIPTION',
-      gameId: this._gameId,
+      gameId: this.gameId,
       playerId: localPlayerId
     }));
 
@@ -344,7 +363,7 @@ export default class GameHost {
     localStorage.setItem(GAME_PREFIX + 'playerName', name);
 
     // Call API
-    return fetch(PATH_TO_API + '/games/' + this._gameId + '/players', {
+    return fetch(PATH_TO_API + '/games/' + this.gameId + '/players', {
       method: 'post',
       headers: { 'Content-Type': 'application/json' },
       body: '{ "name": "' + name + '", "socketId": "' + this.websocket.socketId + '" }'
@@ -360,23 +379,25 @@ export default class GameHost {
 
         // Create an association in localStorage between the local player and their
         // player ID for this game for future recall if the player leaves and rejoins.
-        localStorage.setItem(GAME_PREFIX + 'playerId_' + this._gameId, JSON.stringify({
+        localStorage.setItem(GAME_PREFIX + 'playerId_' + this.gameId, JSON.stringify({
           _id: json._id,
           date: new Date()
         }));
 
         // Set local player ID in redux
-        this.dispatch(setLocalPlayerId(json._id));
+        this._view.props.dispatch(setLocalPlayerId(json._id));
 
         // Immediately add a PlayerData Object to the local gameData for instant
         // feedback that this has been successful (this will get updated from the
         // server as other players join)
-        this.dispatch(addPlayerToGameData({ _id: json._id, name: name }));
+        this._view.props.dispatch(addPlayerToGameData({ _id: json._id, name: name }));
+
+        // Check if the game can start and update the UI if it can
+        this._view.props.dispatch(setGameCanStart(this.gameCanStart()));
 
         // Update the websocket server to tell it that this socket now corresponds
         // to a specific player ID.
         this.updateSubscriptionToGameUpdates(json._id);
-
 
         return json;
       })
@@ -387,10 +408,17 @@ export default class GameHost {
     });
   }
 
+
+  /**
+   * Calls the players API to remove the local player from the game
+   * @param  {Int} playerId     The identifier for the player within this game.
+   * @return {Promise | Error}  Resolves to a json message confirming deletion on
+   *                            success or Error object on failure.
+   */
   removePlayer(playerId) {
 
     // Call API
-    return fetch(PATH_TO_API + '/games/' + this._gameId + '/players/' + playerId, {
+    return fetch(PATH_TO_API + '/games/' + this.gameId + '/players/' + playerId, {
       method: 'delete',
       headers: { 'Content-Type': 'application/json' }
     }).then(response => {
@@ -404,15 +432,18 @@ export default class GameHost {
       return response.json().then(json => {
 
         // Delete the localStorage association between the local player and this gameId
-        localStorage.removeItem(GAME_PREFIX + 'playerId_' + this._gameId);
+        localStorage.removeItem(GAME_PREFIX + 'playerId_' + this.gameId);
 
         // Unset local player ID in redux
-        this.dispatch(setLocalPlayerId(null));
+        this._view.props.dispatch(setLocalPlayerId(null));
 
         // Immediately remove the PlayerData Object from the local gameData for
         // instant feedback that the delete has been successful (this will get
         // updated from the server as other players join).
-        this.dispatch(removePlayerFromGameData(playerId));
+        this._view.props.dispatch(removePlayerFromGameData(playerId));
+
+        // Check if the game can start and update the UI if it can
+        this._view.props.dispatch(setGameCanStart(this.gameCanStart()));
 
         // Update the websocket server to tell it that this socket no longer
         // corresponds to a specific player ID.
@@ -427,23 +458,24 @@ export default class GameHost {
     });
   }
 
+  /**
+   * Checks the current gameData state to assess whether the game can be started
+   * or not. TODO: factor in local player is part of game.
+   * @return {Boolean} Returns true if it is ok for the game to start.
+   */
+  gameCanStart() {
+    return(
+      this._view.props.gameData.players.length >= 2 &&
+      this._view.props.gameData.players.length <= 8
+    );
+  }
 
   startGame() {
-    this.dispatch(setHasStarted(true));
+    this._view.props.dispatch(setHasStarted(true));
   }
 
   endGame() {
 
-  }
-
-
-  // Getters and Setters
-  get gameId() {
-    return this._gameId;
-  }
-
-  set gameId(gameId) {
-    this._gameId = gameId;
   }
 
 }

@@ -24,9 +24,9 @@ class GameShell extends React.Component {
     super(props);
 
     // Create a game host using the ID from the url. The host manages the game.
-    // We pass the host the redux store's dispatch() function to enable the host
-    // to manipulate the view.
-    this.host = new GameHost(this.props.match.params.gameId, this.props.dispatch);
+    // We pass the host this view itself to enable it to read the view component's
+    // data directly.
+    this.host = new GameHost(this);
 
     // Create a game controller and pass it the view.
     // The game controller manages the in-play functions
@@ -78,7 +78,10 @@ class GameShell extends React.Component {
     // If the game has started, show the in-game view
     return (
       <main className="game">
-        {this.props.hasStarted ? this.getInGameView() : this.getPreGameView() }
+        {
+          this.props.gameData && this.props.gameData.hasStarted ?
+          this.getInGameView() : this.getPreGameView()
+        }
       </main>
     );
 
@@ -88,8 +91,8 @@ class GameShell extends React.Component {
 // Redux Store Data
 const mapStateToProps = (state) => {
   return {
+    gameData: state.gameData,
     gameIsValid: state.gameShell.gameIsValid,
-    hasStarted: state.gameData ? state.gameData.hasStarted : false,
     loading: state.gameShell.loading
   }
 }
