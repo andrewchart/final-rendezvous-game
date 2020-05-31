@@ -21,10 +21,10 @@ export const REMOVE_PLAYER_FROM_GAME_DATA = 'gameData/REMOVE_PLAYER_FROM_GAME_DA
 export const SET_GAME_CAN_START = 'gameShell/SET_GAME_CAN_START';
 export const SET_GAME_IS_VALID = 'gameShell/SET_GAME_IS_VALID';
 export const SET_HAS_STARTED = 'gameData/SET_HAS_STARTED';
-export const SET_INITIAL_GAME_DATA = '$' + 'gameData/SET_INITIAL_GAME_DATA';
+export const SET_INITIAL_GAME_DATA = '$gameData/SET_INITIAL_GAME_DATA';
 export const SET_LOADING = 'SET_LOADING';
 export const SET_LOCAL_PLAYER_ID = 'localPlayer/SET_LOCAL_PLAYER_ID';
-export const UPDATE_GAME_DATA = '$' + 'gameData/UPDATE_GAME_DATA';
+export const UPDATE_GAME_DATA = '$gameData/UPDATE_GAME_DATA';
 
 
 // Action Creators

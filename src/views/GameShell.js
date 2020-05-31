@@ -78,7 +78,7 @@ class GameShell extends React.Component {
     // If the game has started, show the in-game view
     return (
       <main className="game">
-        {this.props.gameHasStarted ? this.getInGameView() : this.getPreGameView() }
+        {this.props.hasStarted ? this.getInGameView() : this.getPreGameView() }
       </main>
     );
 
@@ -88,9 +88,8 @@ class GameShell extends React.Component {
 // Redux Store Data
 const mapStateToProps = (state) => {
   return {
-    gameCanStart: state.gameShell.gameCanStart,
-    gameHasStarted: state.gameShell.gameHasStarted,
     gameIsValid: state.gameShell.gameIsValid,
+    hasStarted: state.gameData ? state.gameData.hasStarted : false,
     loading: state.gameShell.loading
   }
 }
