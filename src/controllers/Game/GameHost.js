@@ -75,6 +75,7 @@ export default class GameHost {
 
   }
 
+
   /**
    * Creates a new game on the server with a unique gameId.
    * @return {Promise} Resolves to gameId object or false on failure
@@ -192,7 +193,6 @@ export default class GameHost {
     ) {
       fields = "?fields=" + message.data.fields.toString();
     }
-
 
     // Call API to get desired data.
     return fetch(PATH_TO_API + '/games/' + this.gameId + fields).then(response => {
@@ -458,6 +458,7 @@ export default class GameHost {
     });
   }
 
+
   /**
    * Checks the current gameData state to assess whether the game can be started
    * or not. TODO: factor in local player is part of game.
@@ -470,9 +471,11 @@ export default class GameHost {
     );
   }
 
+
   startGame() {
     this._view.props.dispatch(setHasStarted(true));
   }
+
 
   endGame() {
 

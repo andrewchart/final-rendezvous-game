@@ -21,6 +21,7 @@ import Error from '../views/Error.js';
 class GameShell extends React.Component {
 
   constructor(props) {
+    
     super(props);
 
     // Create a game host using the ID from the url. The host manages the game.
