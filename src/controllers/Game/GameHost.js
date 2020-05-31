@@ -3,7 +3,7 @@ import {
   addPlayerToGameData,
   removePlayerFromGameData,
   setGameCanStart,
-  setGameHasStarted,
+  setHasStarted,
   setGameIsValid,
   setInitialGameData,
   setLoading,
@@ -429,7 +429,7 @@ export default class GameHost {
 
 
   startGame() {
-    this.dispatch(setGameHasStarted(true));
+    this.dispatch(setHasStarted(true));
   }
 
   endGame() {

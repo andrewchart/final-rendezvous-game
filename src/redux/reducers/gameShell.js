@@ -8,7 +8,6 @@
  */
 import {
   SET_GAME_CAN_START,
-  SET_GAME_HAS_STARTED,
   SET_GAME_IS_VALID,
   SET_LOADING
 } from '../actions';
@@ -17,7 +16,6 @@ import {
 // Initial State
 const initialState = {
  gameCanStart: false,
- gameHasStarted: false,
  gameIsValid: false,
  loading: true
 }
@@ -29,11 +27,6 @@ export default function gameShell(state = initialState, action) {
     case SET_GAME_CAN_START:
       return Object.assign({}, state, {
         gameCanStart: action.bool
-      });
-
-    case SET_GAME_HAS_STARTED:
-      return Object.assign({}, state, {
-        gameHasStarted: action.bool
       });
 
     case SET_GAME_IS_VALID:

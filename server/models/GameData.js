@@ -16,6 +16,7 @@ class GameData {
     return {
       _id: this.gameId,
       dateCreated: new Date(),
+      hasStarted: false,
       players: [],
       doubleAgents: this.initDoubleAgents(8),
       xCityId: this.initXCity(),

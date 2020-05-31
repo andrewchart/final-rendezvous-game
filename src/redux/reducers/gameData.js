@@ -9,6 +9,7 @@
 import {
   ADD_PLAYER_TO_GAME_DATA,
   REMOVE_PLAYER_FROM_GAME_DATA,
+  SET_HAS_STARTED,
   SET_INITIAL_GAME_DATA,
   UPDATE_GAME_DATA
 } from '../actions';
@@ -30,6 +31,11 @@ export default function gameData(state = null, action) {
         players: state.players.filter(player => {
           return player._id !== action.id;
         })
+      });
+
+    case SET_HAS_STARTED:
+      return Object.assign({}, state, {
+        hasStarted: action.bool
       });
 
     case SET_INITIAL_GAME_DATA:
