@@ -83,7 +83,7 @@ export default class GameHost {
   registerNewGame() {
 
     // Call API
-    return fetch(PATH_TO_API + '/games', { method: 'post' }).then(response => {
+    return fetch(PATH_TO_API + '/games', { method: 'POST' }).then(response => {
 
       // Throw error on bad response
       if(response.status !== 201) {
@@ -362,11 +362,19 @@ export default class GameHost {
     // Add the player's chosen nickname to localStorage for recall for future games
     localStorage.setItem(GAME_PREFIX + 'playerName', name);
 
+    // Prepare the body data
+    let body = {
+      data: {
+        name: name
+      },
+      socketId: this.websocket.socketId
+    }
+
     // Call API
     return fetch(PATH_TO_API + '/games/' + this.gameId + '/players', {
-      method: 'post',
+      method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: '{ "name": "' + name + '", "socketId": "' + this.websocket.socketId + '" }'
+      body: JSON.stringify(body)
     }).then(response => {
 
       // Throw error on bad response
@@ -419,7 +427,7 @@ export default class GameHost {
 
     // Call API
     return fetch(PATH_TO_API + '/games/' + this.gameId + '/players/' + playerId, {
-      method: 'delete',
+      method: 'DELETE',
       headers: { 'Content-Type': 'application/json' }
     }).then(response => {
 
@@ -450,7 +458,7 @@ export default class GameHost {
         this.updateSubscriptionToGameUpdates(null);
 
         return json;
-      })
+      });
 
     }).catch(err => {
       // Return the error message.
@@ -472,8 +480,50 @@ export default class GameHost {
   }
 
 
+  /**
+   * Irreversibly starts a game once all players have joined. Updates the game
+   * data on the server and initiates the call to the websocket server to notify
+   * all players.
+   * @return {Promise} Resolves to a json message confirming whether the update
+   *                   has been made to the game data. Describes error on failure.
+   */
   startGame() {
-    this._view.props.dispatch(setHasStarted(true));
+
+    // Prepare the body data
+    let body = {
+      data: {
+        hasStarted: true
+      },
+      socketId: this.websocket.socketId
+    }
+
+    // Call API
+    return fetch(PATH_TO_API + '/games/' + this.gameId, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    }).then(response => {
+
+      // Throw error on bad response
+      if(response.status !== 200) {
+        throw(new Error("Could not start game."));
+      }
+
+      // Handle a successful deletion
+      return response.json().then(json => {
+
+        // Go to the in game view
+        this._view.props.dispatch(setHasStarted(true));
+
+        return json;
+
+      });
+
+    }).catch(err => {
+      // Return the error message.
+      return err;
+    });
+
   }
 
 

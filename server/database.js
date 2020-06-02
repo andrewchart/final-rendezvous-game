@@ -88,6 +88,28 @@ class Database {
 
 
   /**
+   * Updates a single document within a collection with the specified data
+   * @param  {Object}  query      Query to match the individual document to be found.
+   * @param  {String}  collection The collection in which to search for the document.
+   * @param  {Object}  data       A document describing the fields to modify e.g.
+   *                              { fieldName: "new value" }.
+   * @return {Promise}            Resolves to an object representation of the
+   *                              result or null if no document is found or on failure.
+   */
+  async updateOne(query, collection, data = null) {
+    try {
+      return await this.db.collection(collection).updateOne(query, {
+        $set: data
+      })
+    } catch(error) {
+      console.log(error.stack);
+      return null;
+    }
+
+  }
+
+
+  /**
    * Appends data onto an array within a single document.
    * @param  {String}  collection The database collection to target
    * @param  {Object}  query      Query to match the individual document to be modified

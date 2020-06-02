@@ -25,8 +25,7 @@ class GamesAPI {
 
     // Reject attempt to create a resource with a specific ID
     if(this.req.params.entityId) {
-      errors.badRequest(this.res);
-      return;
+      return errors.badRequest(this.res);
     }
 
     // Ensure the gameId is random and unique
@@ -70,7 +69,9 @@ class GamesAPI {
   read() {
 
     // Cannot read from an empty ID
-    if(!this.req.params.entityId) errors.badRequest(this.res);
+    if(!this.req.params.entityId) {
+      return errors.badRequest(this.res);
+    }
 
     // Create an empty projection
     let projection = {};
@@ -79,16 +80,23 @@ class GamesAPI {
     // names, translate this into a projection object
     if(this.req.query.fields) {
 
-      let validFields = new GameData();
       let fields = this.req.query.fields.split(",");
+      let validFieldsCount = 0 // Keep track of how many fields in the query we're reading
 
       fields.forEach(field => {
         // Ignore unknown fields
-        if (!(field in validFields)) return;
+        if (!this.isValidField(field)) return;
+
+        validFieldsCount++;
 
         // Add the field to the projection object
         projection[field] = 1
       });
+
+      // If none of the field names were valid, error now
+      if(validFieldsCount === 0) {
+        return errors.badRequest(this.res, "No fields of those names can be read.");
+      }
 
     }
 
@@ -100,7 +108,67 @@ class GamesAPI {
 
   }
 
+  /**
+   * Updates the game data by resolving a patch request to the API
+   * @return {undefined} Finishes by sending the json response to the client
+   */
   update() {
+
+    // Cannot update an empty ID or accept a patch request without a payload
+    if(!this.req.params.entityId || !this.req.body) {
+      return errors.badRequest(this.res);
+    }
+
+    let gameId = this.req.params.entityId;
+    let body = this.req.body;
+
+    // Remove invalid fields from the body. If the object is then empty, respond
+    // with an error.
+    for(let field in body.data) {
+      if (!this.isValidField(field)) {
+        delete body.data[field]
+      }
+    }
+
+    if (Object.keys(body.data).length === 0) {
+      return errors.badRequest(this.res);
+    }
+
+    // Make the update and respond with a simple status obhect
+    return this.db.updateOne({ _id: gameId }, 'games', body.data).then(result => {
+
+      // If no result, something has gone wrong
+      if(!result) {
+        return errors.serverError(this.res, "Could not update the game.")
+      }
+
+      // If no document was found, 404
+      if(result.result.n === 0) {
+        return errors.notFound(
+          this.res,
+          "Could not find game ID " + gameId + " to update it."
+        );
+      }
+
+      // If no modifications have been made, 200, but tell the caller
+      if(result.result.nModified === 0) {
+        return this.res.send({ updated: false });
+      }
+
+      // Call the websockets server to tell all other clients to pull the updated data
+      utils.sendMessageToWebsocketsServer({
+        clientType: 'API_SERVER',
+        messageType: 'UPDATE_GAME_DATA',
+        data: {
+          gameId: gameId,
+          fields: Object.keys(body.data),
+          excludePlayers: this.req.body.socketId
+        }
+      });
+
+      // Otherwise, update was successful
+      return this.res.send({ updated: true });
+    });
 
   }
 
@@ -114,11 +182,11 @@ class GamesAPI {
         break;
 
       case 'PATCH':
-        //TODO
+        this.update();
         break;
 
       case 'POST':
-        this.create()
+        this.create();
         break;
     }
   }
@@ -150,6 +218,7 @@ class GamesAPI {
 
   }
 
+
   /**
    * Checks a game code is unique by querying the database for that code.
    * @param  {String} code The code to be checked.
@@ -165,6 +234,19 @@ class GamesAPI {
       return false;
     }).then(unique => { return unique });
 
+  }
+
+
+  /**
+   * Uses the empty model and assesses whether the field name provided is in the
+   * model.
+   * @param  {String}  fieldName The name of the field to test
+   * @return {Boolean}           Returns true if the field is in the model,
+   *                             false otherwise
+   */
+  isValidField(fieldName) {
+    let validFields = new GameData();
+    return (fieldName in validFields)
   }
 
 }

@@ -4,6 +4,7 @@ import {connect} from 'react-redux';
 
 import AddPlayer from '../ui_components/PreGame/AddPlayer.js';
 import CurrentPlayers from '../ui_components/PreGame/CurrentPlayers.js';
+import ValidationError from '../ui_components/global/ValidationError.js';
 
 class PreGame extends React.Component {
 
@@ -24,9 +25,23 @@ class PreGame extends React.Component {
 
         { this.getAddPlayerForm() }
 
-        <CurrentPlayers players={this.props.players} localPlayer={this.props.localPlayer} host={this.props.host} />
+        <CurrentPlayers
+          players={this.props.players}
+          localPlayer={this.props.localPlayer}
+          host={this.props.host} />
 
+
+        {
+          !this.props.localPlayer &&
+          <ValidationError message="Only players who have joined are allowed to start this game." />
+        }
+
+
+        <label htmlFor="startGameButton">
+            Once all players have joined the game, click "Start Game" to start playing.
+        </label>
         <button
+          id="startGameButton"
           disabled={(!this.props.gameCanStart)}
           onClick={this.props.host.startGame}>Start Game</button>
 

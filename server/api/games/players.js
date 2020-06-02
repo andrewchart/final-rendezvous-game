@@ -27,7 +27,7 @@ class PlayersAPI {
 
     // Reject attempts to create a resource with a specific ID and requests
     // which do not include an appropriate payload in the body.
-    if(this.req.params.propertyId || !this.req.body.name) {
+    if(this.req.params.propertyId || !this.req.body.data.name) {
       errors.badRequest(this.res);
       return;
     }
@@ -107,7 +107,7 @@ class PlayersAPI {
       let append = (j === 0) ? "" : " (" + j + ")";
 
       // Var for player name
-      playerName = this.req.body.name + append;
+      playerName = this.req.body.data.name + append;
 
       uniqueName = await this.playerNameIsUnique(playerName, players);
 
