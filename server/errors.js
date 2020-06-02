@@ -7,16 +7,21 @@ function notFound(res, msg="Not Found") {
 }
 
 function badRequest(res, msg="Invalid Request") {
-  res.status(400).send({ errors: [{ code: 400, message: msg }] })
+  res.status(400).send({ errors: [{ code: 400, message: msg }] });
+}
+
+function conflict(res, msg="Conflict") {
+  res.status(409).send({ errors: [{ code: 409, message: msg }] });
 }
 
 function serverError(res, msg="Server Error") {
-  res.status(500).send({ errors: [{ code: 500, message: msg }] })
+  res.status(500).send({ errors: [{ code: 500, message: msg }] });
 }
 
 
 module.exports = {
   notFound,
   badRequest,
+  conflict,
   serverError
 }

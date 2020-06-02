@@ -22,6 +22,13 @@ export default class Error extends React.Component {
         showNewGame = true;
         break;
 
+      case "not_a_player":
+        errorHeading = "Game In Progress";
+        errorMessage = "Sorry, you cannot view or join this game as it is " +
+                       "already in progress.";
+        showNewGame = true;
+        break;
+
       default:
         errorHeading = "An Error Has Occurred";
         errorMessage = "Sorry, an error occurred whilst loading this page.";

@@ -7,6 +7,7 @@ import GameController from '../controllers/Game/GameController.js';
 
 import Loading from '../ui_components/global/Loading.js';
 import PreGame from '../views/PreGame.js';
+import InGame from '../views/InGame.js';
 
 import Error from '../views/Error.js';
 
@@ -21,7 +22,7 @@ import Error from '../views/Error.js';
 class GameShell extends React.Component {
 
   constructor(props) {
-    
+
     super(props);
 
     // Create a game host using the ID from the url. The host manages the game.
@@ -61,18 +62,22 @@ class GameShell extends React.Component {
   }
 
   getInGameView() {
-    return <div>In Game View <br /><br /></div>
+    return <InGame />;
   }
 
   render() {
 
     // Show the loading icon whilst performing work
-    if(this.props.loading)
+    if (this.props.loading)
       return <Loading />;
 
     // If the gameId is invalid...
-    if(!this.props.gameIsValid)
+    if (!this.props.gameIsValid)
       return <Error type="invalid_game" />;
+
+    // Prevent non players from viewing a game that has started
+    if (!this.props.localPlayer._id && this.props.gameData.hasStarted)
+      return <Error type="not_a_player" />;
 
     // Otherwise, we can create the game UI
     // If the game hasn't started, show the pre-game view (capture players)
@@ -94,6 +99,7 @@ const mapStateToProps = (state) => {
   return {
     gameData: state.gameData,
     gameIsValid: state.gameShell.gameIsValid,
+    localPlayer: state.localPlayer,
     loading: state.gameShell.loading
   }
 }

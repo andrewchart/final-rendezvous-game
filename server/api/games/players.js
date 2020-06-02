@@ -39,6 +39,12 @@ class PlayersAPI {
       return errors.notFound(this.res, "Can't add player because game does not exist.");
     }
 
+    //Check the game hasn't started already
+    let started = await this.gameHasStarted(gameId);
+    if(started) {
+      return errors.conflict(this.res, "Can't add player because the game has already started.");
+    }
+
     // Callbacks to successfully resolve or fail the create request
     const successCallback = () => {
 
@@ -149,7 +155,10 @@ class PlayersAPI {
     // Check the game ID exists
     let exists = await this.gameExists(gameId);
     if(!exists) {
-      return errors.notFound(this.res, "Can't retrieve players because game does not exist.");
+      return errors.notFound(
+        this.res,
+        "Can't retrieve players because game does not exist."
+      );
     }
 
     // Retrieve players array from gameData
@@ -160,13 +169,13 @@ class PlayersAPI {
       if(!result.players) return errors.notFound(this.res);
       return this.res.send(result.players);
     }).catch(err => {
-      return errors.serverError(this.res, "Error retrieving players from database.");
+      return errors.serverError(
+        this.res,
+        "Error retrieving players from database."
+      );
     });
   }
 
-  update() {
-
-  }
 
   /**
    * Deletes a player from the game using the specified game and player IDs.
@@ -187,7 +196,19 @@ class PlayersAPI {
     // Check the game ID exists
     let gameExists = await this.gameExists(gameId);
     if(!gameExists) {
-      return errors.notFound(this.res, "Can't delete player because game does not exist.");
+      return errors.notFound(
+        this.res,
+        "Can't delete player because game does not exist."
+      );
+    }
+
+    //Check the game hasn't started already
+    let started = await this.gameHasStarted(gameId);
+    if(started) {
+      return errors.conflict(
+        this.res,
+        "Can't remove player because the game has already started."
+      );
     }
 
     // Attempt to remove the specified player from the GameData
@@ -241,10 +262,6 @@ class PlayersAPI {
         this.read();
         break;
 
-      case 'PATCH':
-        //TODO
-        break;
-
       case 'POST':
         this.create()
         break;
@@ -260,7 +277,7 @@ class PlayersAPI {
   /**
    * Checks if the Game ID currently exists by querying the database for it.
    * @param  {String} gameId  Unique identifier in the database for the game data.
-   * @return {Promise}        Returns true if the game exists, false otherwise.
+   * @return {Promise}        Resolves to true if the game exists, false otherwise.
    */
   gameExists(gameId) {
     return this.db.findOne({ _id: gameId }, 'games').then(result => {
@@ -269,10 +286,36 @@ class PlayersAPI {
     });
   }
 
+
+  /**
+   * Checks if the game has started yet or not
+   * @param  {String} gameId  Unique identifier in the database for the game data.
+   * @return {Promise}        Resolves to true if the game has started, false otherwise.
+   */
+  gameHasStarted(gameId) {
+    return this.db.findOne({ _id: gameId }, 'games').then(result => {
+      return result.hasStarted;
+    });
+  }
+
+
+  /**
+   * Checks if the player ID is unique amongst all players
+   * @param  {Int}    id      The player ID to check
+   * @param  {Array}  players Array of all PlayerData objects
+   * @return {Boolean}        Returns true if the player ID is unique, false otherwise
+   */
   playerIdIsUnique(id, players) {
     return players.filter(player => player._id === id).length > 0 ? false : true;
   }
 
+
+  /**
+   * Checks if the player name is unique amongst all players
+   * @param  {String}  name    The player name to check
+   * @param  {Array}   players Array of all PlayerData objects
+   * @return {Boolean}         Returns true if the player name is unique, false otherwise
+   */
   playerNameIsUnique(name, players) {
     return players.filter(player => player.name === name).length > 0 ? false : true;
   }
