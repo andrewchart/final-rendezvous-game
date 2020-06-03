@@ -1,4 +1,4 @@
-const errors = require('../../errors.js');
+const apiErrors = require('../errors.js');
 const utils = require('../../utils.js');
 
 const GameData = require('../../models/GameData.js');
@@ -25,7 +25,7 @@ class GamesAPI {
 
     // Reject attempt to create a resource with a specific ID
     if(this.req.params.entityId) {
-      return errors.badRequest(this.res);
+      return apiErrors.badRequest(this.res);
     }
 
     // Ensure the gameId is random and unique
@@ -43,7 +43,7 @@ class GamesAPI {
       // Defend against infinite loops in the unlikely event that there are no
       // gameIds available.
       if(i > 100) {
-        errors.serverError(this.res, "No game IDs available. Contact the website owner.");
+        apiErrors.serverError(this.res, "No game IDs available. Contact the website owner.");
         return;
       }
 
@@ -56,7 +56,7 @@ class GamesAPI {
     return this.db.insertOne(gameData, 'games').then(result => {
       return this.res.status(201).send({ _id: gameId });
     }).catch(err => {
-      return errors.serverError(this.res, "Could not create new game in database");
+      return apiErrors.serverError(this.res, "Could not create new game in database");
     });
 
   }
@@ -70,7 +70,7 @@ class GamesAPI {
 
     // Cannot read from an empty ID
     if(!this.req.params.entityId) {
-      return errors.badRequest(this.res);
+      return apiErrors.badRequest(this.res);
     }
 
     // Create an empty projection
@@ -95,14 +95,14 @@ class GamesAPI {
 
       // If none of the field names were valid, error now
       if(validFieldsCount === 0) {
-        return errors.badRequest(this.res, "No fields of those names can be read.");
+        return apiErrors.badRequest(this.res, "No fields of those names can be read.");
       }
 
     }
 
     // Retrieve the result
     return this.db.findOne({ _id: this.req.params.entityId }, 'games', projection).then(result => {
-      if(!result) return errors.notFound(this.res);
+      if(!result) return apiErrors.notFound(this.res);
       return this.res.send(result);
     });
 
@@ -116,7 +116,7 @@ class GamesAPI {
 
     // Cannot update an empty ID or accept a patch request without a payload
     if(!this.req.params.entityId || !this.req.body) {
-      return errors.badRequest(this.res);
+      return apiErrors.badRequest(this.res);
     }
 
     let gameId = this.req.params.entityId;
@@ -131,7 +131,7 @@ class GamesAPI {
     }
 
     if (Object.keys(body.data).length === 0) {
-      return errors.badRequest(this.res);
+      return apiErrors.badRequest(this.res);
     }
 
     // Make the update and respond with a simple status obhect
@@ -139,12 +139,12 @@ class GamesAPI {
 
       // If no result, something has gone wrong
       if(!result) {
-        return errors.serverError(this.res, "Could not update the game.")
+        return apiErrors.serverError(this.res, "Could not update the game.")
       }
 
       // If no document was found, 404
       if(result.result.n === 0) {
-        return errors.notFound(
+        return apiErrors.notFound(
           this.res,
           "Could not find game ID " + gameId + " to update it."
         );

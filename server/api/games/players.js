@@ -1,4 +1,4 @@
-const errors = require('../../errors.js');
+const apiErrors = require('../errors.js');
 const utils = require('../../utils.js');
 
 const PlayerData = require('../../models/PlayerData.js');
@@ -28,7 +28,7 @@ class PlayersAPI {
     // Reject attempts to create a resource with a specific ID and requests
     // which do not include an appropriate payload in the body.
     if(this.req.params.propertyId || !this.req.body.data.name) {
-      errors.badRequest(this.res);
+      apiErrors.badRequest(this.res);
       return;
     }
 
@@ -36,13 +36,13 @@ class PlayersAPI {
     let gameId = this.req.params.entityId;
     let exists = await this.gameExists(gameId);
     if(!exists) {
-      return errors.notFound(this.res, "Can't add player because game does not exist.");
+      return apiErrors.notFound(this.res, "Can't add player because game does not exist.");
     }
 
     //Check the game hasn't started already
     let started = await this.gameHasStarted(gameId);
     if(started) {
-      return errors.conflict(this.res, "Can't add player because the game has already started.");
+      return apiErrors.conflict(this.res, "Can't add player because the game has already started.");
     }
 
     // Callbacks to successfully resolve or fail the create request
@@ -71,7 +71,7 @@ class PlayersAPI {
     }
 
     const errorCallback = () => {
-      return errors.serverError(this.res, "Could not create player in the database.");
+      return apiErrors.serverError(this.res, "Could not create player in the database.");
     }
 
     // Get the current players array for the current game
@@ -155,7 +155,7 @@ class PlayersAPI {
     // Check the game ID exists
     let exists = await this.gameExists(gameId);
     if(!exists) {
-      return errors.notFound(
+      return apiErrors.notFound(
         this.res,
         "Can't retrieve players because game does not exist."
       );
@@ -166,10 +166,10 @@ class PlayersAPI {
       { _id: gameId }, 'games',
       { _id: 0, players: 1 }
     ).then(result => {
-      if(!result.players) return errors.notFound(this.res);
+      if(!result.players) return apiErrors.notFound(this.res);
       return this.res.send(result.players);
     }).catch(err => {
-      return errors.serverError(
+      return apiErrors.serverError(
         this.res,
         "Error retrieving players from database."
       );
@@ -189,14 +189,14 @@ class PlayersAPI {
 
     // Reject attempts to delete a player without a specific gameId and playerId.
     if(!gameId || !playerId) {
-      errors.badRequest(this.res);
+      apiErrors.badRequest(this.res);
       return;
     }
 
     // Check the game ID exists
     let gameExists = await this.gameExists(gameId);
     if(!gameExists) {
-      return errors.notFound(
+      return apiErrors.notFound(
         this.res,
         "Can't delete player because game does not exist."
       );
@@ -205,7 +205,7 @@ class PlayersAPI {
     //Check the game hasn't started already
     let started = await this.gameHasStarted(gameId);
     if(started) {
-      return errors.conflict(
+      return apiErrors.conflict(
         this.res,
         "Can't remove player because the game has already started."
       );
@@ -235,14 +235,14 @@ class PlayersAPI {
 
         return this.res.send({ deleted: result });
       } else {
-        return errors.notFound(
+        return apiErrors.notFound(
           this.res,
           `Could not delete player ${playerId} from ${gameId}. The player could not be found.`
         );
       }
 
     }).catch(err => {
-      return errors.serverError(this.res, err.message);
+      return apiErrors.serverError(this.res, err.message);
     });
 
   }
@@ -267,7 +267,7 @@ class PlayersAPI {
         break;
 
       default:
-        errors.badRequest(this.res);
+        apiErrors.badRequest(this.res);
     }
   }
 
