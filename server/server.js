@@ -1,11 +1,12 @@
 require('dotenv').config({ path: '../.env' });
 
 const express = require('express');
-const cors = require('cors');
 const bodyParser = require('body-parser');
+const compression = require('compression');
+const cors = require('cors');
 
 const app = express();
-const port = 3001;
+const port = process.env.REACT_APP_HTTP_SERVER_PORT;
 
 const errors = require('./errors.js');
 
@@ -32,9 +33,11 @@ const corsOpts = {
   }
 }
 
-
 // Allow parsing of json request bodies
 app.use(bodyParser.json());
+
+// Enable GZIP compression
+app.use(compression());
 
 
 // API Routes (use CORS settings)
