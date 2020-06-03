@@ -1,15 +1,15 @@
-import React from 'react';
+import React, {lazy} from 'react';
 
 import {connect} from 'react-redux';
 
 import GameHost from '../controllers/Game/GameHost.js';
 import GameController from '../controllers/Game/GameController.js';
 
+import Error from '../views/Error.js';
+
 import Loading from '../ui_components/global/Loading.js';
 import PreGame from '../views/PreGame.js';
-import InGame from '../views/InGame.js';
-
-import Error from '../views/Error.js';
+const  InGame = lazy(() => import('../views/InGame.js'));
 
 
 /**

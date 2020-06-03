@@ -10,7 +10,7 @@ class InGame extends React.Component {
 
   render() {
     return (
-      <section className="preGame">
+      <section className="inGame">
         <h3>In the game</h3>
       </section>
     );
