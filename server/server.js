@@ -11,9 +11,9 @@ const errors = require('./errors.js');
 
 
 // Set up a database connection
-const dbUrl = 'mongodb://localhost:27017/';
+const dbUrl = process.env.REACT_APP_MONGO_DB_URL;
 const dbOpts = { useUnifiedTopology: true };
-const dbName = 'final-rendezvous-game';
+const dbName = process.env.REACT_APP_MONGO_DB_NAME;
 
 const Database = require('./database.js');
 var db = new Database(dbUrl, dbOpts, dbName);
@@ -32,15 +32,16 @@ const corsOpts = {
   }
 }
 
-app.use(cors(corsOpts));
-
 
 // Allow parsing of json request bodies
 app.use(bodyParser.json());
 
 
-// API Routes
-app.use('/api/:entity/:entityId?/:property?/:propertyId?', (req, res)=>{
+// API Routes (use CORS settings)
+app.use(
+  '/api/:entity/:entityId?/:property?/:propertyId?',
+  cors(corsOpts),
+  (req, res) => {
 
   //Determine the correct middleware to resolve the request
   var Handler;
@@ -76,11 +77,13 @@ app.use('/api/:entity/:entityId?/:property?/:propertyId?', (req, res)=>{
 
 });
 
+//app.use(express.static('../build'))
+
 // Main App
 // app.get(
 //   '/',
 //   (req, res) => {
-//
+//     res.send("Hello")
 //   }
 // );
 
