@@ -24,7 +24,7 @@ const corsOrigins = process.env.REACT_APP_API_CORS_ORIGINS.split(","); //Array o
 
 const corsOpts = {
   origin: (origin, callback) => {
-    if (corsOrigins.indexOf(origin) !== -1) {
+    if (corsOrigins.indexOf(origin) !== -1 || !origin) {
       callback(null, true);
     } else {
       callback(new Error('Not allowed by CORS'));
@@ -77,7 +77,7 @@ app.use(
 
 });
 
-//app.use(express.static('../build'))
+app.use(express.static('../build'))
 
 // Main App
 // app.get(
