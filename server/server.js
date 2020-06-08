@@ -1,6 +1,9 @@
 require('dotenv').config({ path: '../.env' });
 
 // Set up Express
+const fs = require('fs');
+const http = require('http');
+const https = require('https');
 const express = require('express');
 const bodyParser = require('body-parser');
 const compression = require('compression');
@@ -8,7 +11,7 @@ const cors = require('cors');
 const path = require('path');
 
 const app = express();
-const port = process.env.REACT_APP_HTTP_SERVER_PORT || 443;
+const port = process.env.REACT_APP_HTTP_SERVER_PORT;
 
 const apiErrors = require('./api/errors.js');
 
@@ -110,6 +113,27 @@ app.get("*", (req, res) => {
   res.sendFile('404.html', { root: path.join(__dirname, '../build') });
 });
 
+// Try to set up as Https with LetsEncrypt
+try {
+  const domain = process.env.REACT_APP_DOMAIN;
+  const privateKey = fs.readFileSync(`/etc/letsencrypt/live/${domain}/privkey.pem`, 'utf8');
+  const certificate = fs.readFileSync(`/etc/letsencrypt/live/${domain}/cert.pem`, 'utf8');
+  const ca = fs.readFileSync(`/etc/letsencrypt/live/${domain}/chain.pem`, 'utf8');
 
-// Start Listening
-app.listen(port, () => console.log(`Example app listening at http://localhost:${port}`))
+  const credentials = {
+    key: privateKey,
+    cert: certificate,
+    ca: ca
+  };
+} catch (err) {
+  if (port === 443) throw new Error(err);
+}
+
+// Set up a secure/insecure server
+const server = (port === 443 ? https.createServer(credentials, app) :
+                               http.createServer(app));
+
+// Start listening
+server.listen(port, () => {
+  console.log(`HTTP Server listening on port ${port}`);
+});
