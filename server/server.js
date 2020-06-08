@@ -114,13 +114,14 @@ app.get("*", (req, res) => {
 });
 
 // Try to set up as Https with LetsEncrypt
+let credentials;
 try {
   const domain = process.env.REACT_APP_DOMAIN;
   const privateKey = fs.readFileSync(`/etc/letsencrypt/live/${domain}/privkey.pem`, 'utf8');
   const certificate = fs.readFileSync(`/etc/letsencrypt/live/${domain}/cert.pem`, 'utf8');
   const ca = fs.readFileSync(`/etc/letsencrypt/live/${domain}/chain.pem`, 'utf8');
 
-  const credentials = {
+  credentials = {
     key: privateKey,
     cert: certificate,
     ca: ca
