@@ -1,17 +1,17 @@
 require('dotenv').config({ path: '../.env' });
 
 // Set up Express
-const fs = require('fs');
-const http = require('http');
-const https = require('https');
 const express = require('express');
 const bodyParser = require('body-parser');
 const compression = require('compression');
 const cors = require('cors');
 const path = require('path');
+const fs = require('fs');
+const http = require('http');
+const https = require('https');
 
 const app = express();
-const port = process.env.REACT_APP_HTTP_SERVER_PORT;
+const port = (process.env.NODE_ENV === 'production' ? 443 : 3001);
 
 const apiErrors = require('./api/errors.js');
 
