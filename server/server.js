@@ -146,7 +146,7 @@ server.listen(port, () => {
 // If a production server with https was set up, also allow redirects from port 80 to 443
 if(port === 443) {
 
-  const httpServer = express.createServer(app).listen(80);
+  const httpServer = http.createServer(app).listen(80);
 
   httpServer.get('*', function(req, res) {
       res.redirect('https://' + req.headers.host + req.url);
