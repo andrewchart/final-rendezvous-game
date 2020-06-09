@@ -152,9 +152,7 @@ if(port === 443) {
     res.redirect('https://' + req.headers.host + req.url);
   });
 
-  const httpServer = http.createServer(httpApp).listen(80);
-
-  httpServer.listen(80, () => {
+  const httpServer = http.createServer(httpApp).listen(80, () => {
     console.log(`Http to https redirect server listening on port 80`);
   });
 
