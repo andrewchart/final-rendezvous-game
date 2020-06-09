@@ -16,7 +16,7 @@ import { createBrowserHistory } from 'history';
 const history = createBrowserHistory();
 
 // Game Data API
-const PATH_TO_API = process.env.REACT_APP_PATH_TO_API;
+const PATH_TO_API = "//" + process.env.REACT_APP_DOMAIN + "/api";
 
 // Game Prefix
 const GAME_PREFIX = process.env.REACT_APP_PREFIX;
