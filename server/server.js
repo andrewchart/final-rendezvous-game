@@ -140,7 +140,7 @@ const server = (port === 443 ? https.createServer(credentials, app) :
 
 // Start listening on the preferred port
 server.listen(port, () => {
-  console.log(`Http server listening on port ${port}`);
+  console.log(`http server listening on port ${port}`);
 });
 
 // If a production server with https was set up, also allow redirects from port 80 to 443
@@ -149,11 +149,11 @@ if(port === 443) {
   const httpApp = express();
 
   httpApp.get('*', function(req, res) {
-    res.redirect('https://' + req.headers.host + req.url);
+    res.redirect(301, 'https://' + req.headers.host + req.url);
   });
 
   const httpServer = http.createServer(httpApp).listen(80, () => {
-    console.log(`Http to https redirect server listening on port 80`);
+    console.log(`http to https redirect server listening on port 80`);
   });
 
 }
