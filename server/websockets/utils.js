@@ -1,6 +1,6 @@
-// These boilerplate utilities are imported into the Websockets server main
-// runtime and are used to facilitate communications between the websockets server
-// and player clients / API clients.
+// These boilerplate utilities are used by the Websockets server during main
+// runtime to facilitate communications between the websockets server and
+// player clients / API clients.
 
 
 /**

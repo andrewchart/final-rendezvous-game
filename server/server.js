@@ -12,6 +12,10 @@ const https = require('https');
 
 const app = express();
 
+// Websockets: Websocket Server Dependencies
+const WebSocket = require('ws');
+const wsUtils = require('./websockets/utils.js');
+
 // Express: Set up CORS
 const corsOrigins = process.env.REACT_APP_API_CORS_ORIGINS.split(","); //Array of origins
 
@@ -113,7 +117,7 @@ app.get("*", (req, res) => {
 });
 
 
-// Express: Server Listen
+// Express & Websockets: Server Listen
 // Determine port number depending on environment and start listening
 const port = (process.env.NODE_ENV === 'production' ? 443 : 3001);
 
@@ -134,25 +138,50 @@ try {
   if (port === 443) throw new Error(err);
 }
 
-// Set up the server object, with https if appropriate
-const server = (port === 443 ? https.createServer(credentials, app) :
-                               http.createServer(app));
+// Set up the http server object, with https if appropriate
+const httpServer = (port === 443 ? https.createServer(credentials, app) :
+                                   http.createServer(app));
+
+// Also set up a websocket server on the same port, passing in the http server obj
+const wsServer = new WebSocket.Server({ server: httpServer });
+
+wsServer.on('connection', (ws, req) => {
+
+  // Set the handler for all incoming websocket messages from the client users
+  ws.on('message', message => {
+
+    message = JSON.parse(message);
+
+    switch(message.clientType) {
+      case 'PLAYER':
+        wsUtils.playerMessageHandler(message, wsServer, ws);
+        break;
+
+      case 'API_SERVER':
+        console.log('api serv message');
+        wsUtils.apiServerMessageHandler(message, wsServer);
+        break;
+    }
+
+  });
+
+});
 
 // Start listening on the preferred port
-server.listen(port, () => {
+httpServer.listen(port, () => {
   console.log(`http server listening on port ${port}`);
 });
 
 // If a production server with https was set up, also allow redirects from port 80 to 443
 if(port === 443) {
 
-  const httpApp = express();
+  const plainHttpApp = express();
 
-  httpApp.get('*', function(req, res) {
+  plainHttpApp.get('*', function(req, res) {
     res.redirect(301, 'https://' + req.headers.host + req.url);
   });
 
-  const httpServer = http.createServer(httpApp).listen(80, () => {
+  const plainHttpServer = http.createServer(plainHttpApp).listen(80, () => {
     console.log(`http to https redirect server listening on port 80`);
   });
 
