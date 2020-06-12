@@ -22,7 +22,7 @@ function sendMessageToWebsocketsServer(message) {
   try {
     const WebSocket = require('ws');
     const wsProtocol = (process.env.NODE_ENV === 'production' ? "wss" : "ws");
-    const wsUrl = wsProtocol + "://" + process.env.REACT_APP_WEBSOCKET_SERVER_HTTP_SERVER_URL;
+    const wsUrl = wsProtocol + "://" + process.env.REACT_APP_WEBSOCKET_SERVER_URL;
 
     const ws = new WebSocket(wsUrl);
 

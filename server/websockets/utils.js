@@ -1,7 +1,14 @@
-// These boilerplate utilities are used by the Websockets server during main
-// runtime to facilitate communications between the websockets server and
-// player clients / API clients.
-
+/* WEBSOCKET UTILITY FUNCTIONS */
+// Boilerplate methods - used by the Websockets server during main runtime to
+// facilitate communications between the websockets server and player clients -
+// are centralised here.
+//
+// It's been pointed out that it's unnecessary to have a handler for WebSocket
+// messages coming from the API server as, in this codebase, the api and the
+// WebSocket messages are handled by the same http server. However, I decided to
+// continue to implement http server messaging to ws:// since this theoretically
+// requires a simpler decoupling, should we wish to sit the WSS on another domain.
+// https://stackoverflow.com/questions/62337812
 
 /**
  * Defines logic for handling messages coming from the API server.

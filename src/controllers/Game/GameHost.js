@@ -245,7 +245,7 @@ export default class GameHost {
     try {
 
       const wsProtocol = (window.location.protocol === 'https:' ? "wss" : "ws");
-      const wsUrl = wsProtocol + "://" + process.env.REACT_APP_WEBSOCKET_SERVER_CLIENT_URL;
+      const wsUrl = wsProtocol + "://" + process.env.REACT_APP_WEBSOCKET_SERVER_URL;
 
       const ws = new WebSocket(wsUrl);
 
