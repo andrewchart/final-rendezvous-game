@@ -55,7 +55,6 @@ ReactDOM.render(
                   <Home />
                 </Route>
 
-                { /* Todo: server respond 404 */ }
                 <Route
                   path="*"
                   component={() => <Error type="404" />} />
