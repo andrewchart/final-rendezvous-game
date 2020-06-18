@@ -14,7 +14,7 @@ export default class Footer extends React.Component {
         </p>
         <nav>
           <a href="https://www.andrewchart.co.uk/" target="_blank" rel="noopener noreferrer">Blog</a>
-          <a href="https://github.com/" target="_blank" rel="noopener noreferrer">Github</a>
+          <a href="https://github.com/andrewchart/final-rendezvous-game" target="_blank" rel="noopener noreferrer">Github</a>
           <a href="https://github.com/" target="_blank" rel="noopener noreferrer">Developers</a>
         </nav>
       </footer>
