@@ -113,7 +113,7 @@ app.use(express.static('../build'));
 // App: 404 Errors
 // All other routes provide an HTML 404 page
 app.get("*", (req, res) => {
-  res.status(405).sendFile('404.html', { root: path.join(__dirname, '../build') });
+  res.status(404).sendFile('404.html', { root: path.join(__dirname, '../build') });
 });
 
 
