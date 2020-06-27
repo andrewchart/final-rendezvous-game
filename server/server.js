@@ -75,6 +75,10 @@ app.use(
 
           break;
 
+        case 'cities':
+          Handler = require('./api/cities/index.js');
+          break;
+
         default:
           apiErrors.notFound(res);
           return;

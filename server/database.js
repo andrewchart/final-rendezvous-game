@@ -88,6 +88,29 @@ class Database {
 
 
   /**
+   * Finds ALL results matching the query within a collection with no pagination,
+   * limit or batch sizing.
+   * @param  {Object}  query      Query to match the documents to be found.
+   * @param  {String}  collection The collection in which to search for the documents.
+   * @param  {Object}  projection A document describing the fields to return e.g.
+   *                              { fieldName: 1 }.
+   * @return {Promise}            Resolves to an array of objects representation
+   *                              of the results or empty array if no result is
+   *                              found or on failure.
+   */
+  async findAll(query, collection, projection = null) {
+    try {
+      return await this.db.collection(collection).find(query, {
+        projection: projection
+      }).toArray();
+    } catch(error) {
+      console.log(error.stack);
+      return [];
+    }
+  }
+
+
+  /**
    * Updates a single document within a collection with the specified data
    * @param  {Object}  query      Query to match the individual document to be found.
    * @param  {String}  collection The collection in which to search for the document.

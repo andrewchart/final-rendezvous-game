@@ -1,6 +1,7 @@
 import { combineReducers } from 'redux'
 
 // Import individual reducers
+import cityData from './cityData.js';
 import gameData from './gameData.js';
 import gameShell from './gameShell.js';
 import localPlayer from './localPlayer.js';
@@ -12,8 +13,9 @@ import lastUpdateFromServer from './lastUpdateFromServer.js';
  * and in-game play.
  */
 export default combineReducers({
+  cityData,
   gameData,
   gameShell,
   localPlayer,
-  lastUpdateFromServer
+  lastUpdateFromServer,
 });

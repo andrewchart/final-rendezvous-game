@@ -2,20 +2,20 @@ import React from 'react';
 
 import {connect} from 'react-redux';
 
+import CityList from '../ui_components/InGame/CityList.js';
+import WorldMap from '../ui_components/InGame/WorldMap.js';
+
 class InGame extends React.Component {
-
-
-
 
 
   render() {
     return (
       <section className="inGame">
-        <h3>In the game</h3>
+        <WorldMap />
+        <CityList />
       </section>
     );
   }
-
 
 }
 

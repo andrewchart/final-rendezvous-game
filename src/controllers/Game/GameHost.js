@@ -2,6 +2,7 @@
 import {
   addPlayerToGameData,
   removePlayerFromGameData,
+  setCityData,
   setGameCanStart,
   setHasStarted,
   setGameIsValid,
@@ -144,6 +145,9 @@ export default class GameHost {
 
         // Confirm to the UI that the game ID is valid
         this._view.props.dispatch(setGameIsValid(true));
+
+        // Get the city data for all cities and put it in the redux store
+        this.initCityData();
 
         // Check if the game can start and update the UI if it can
         this._view.props.dispatch(setGameCanStart(this.gameCanStart()));
@@ -464,6 +468,35 @@ export default class GameHost {
       // Return the error message.
       return err;
     });
+  }
+
+
+  /**
+   * Calls the Cities API to get the city data for the Redux store
+   *
+   * @return {Promise | Error}      Resolves to an array of city data on success
+   *                                or Error object on failure.
+   */
+  initCityData() {
+
+    // Call API
+    return fetch(PATH_TO_API + '/cities').then(response => {
+
+      // Throw error on bad response
+      if(response.status !== 200) {
+        throw(new Error("Could not get city data."));
+      }
+
+      // Return the city data
+      return response.json().then(json => {
+        this._view.props.dispatch(setCityData(json));
+      });
+
+    }).catch(err => {
+      // Return the error message.
+      return err;
+    });
+
   }
 
 
