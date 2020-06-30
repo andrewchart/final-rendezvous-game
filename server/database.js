@@ -1,5 +1,6 @@
 const MongoClient = require('mongodb').MongoClient;
 const assert = require('assert');
+const utils = require('./utils');
 
 /**
  * This helper class provides an initial connection to a MongoDB Instance and
@@ -80,6 +81,40 @@ class Database {
       return await this.db.collection(collection).findOne(query, {
         projection: projection
       });
+    } catch(error) {
+      console.log(error.stack);
+      return null;
+    }
+  }
+
+
+  /**
+   * Gets one random entry from the specified collection. Good distribution for
+   * relatively small collections but bear in mind that .skip() scans the whole set.
+   * @param  {String}  collection The collection in which to search for the document.
+   * @param  {Object}  projection A document describing the fields to return e.g.
+   *                              { fieldName: 1 }.
+   * @return {Promise}            Resolves to an object representation of the random
+   *                              document or null if no result is found or on failure.
+   */
+  async findOneRandom(collection, projection = null) {
+    try {
+
+      // Count the documents in the collection
+      let count = await this.db.collection(collection).countDocuments();
+
+      // Generate a number of documents for the cursor to skip (0 to n-1)
+      let rand = utils.randomIntBetween(0, count-1);
+
+      // Scan the collection with an optional projection
+      return await this.db.collection(collection)
+        .find({}, {
+          projection: projection
+        })
+        .limit(-1)
+        .skip(rand)
+        .next();
+
     } catch(error) {
       console.log(error.stack);
       return null;

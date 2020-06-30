@@ -52,7 +52,7 @@ class GamesAPI {
     } while(!unique);
 
     // Save to database
-    let gameData = new GameData(gameId);
+    let gameData = await new GameData(gameId);
     return this.db.insertOne(gameData, 'games').then(result => {
       return this.res.status(201).send({ _id: gameId });
     }).catch(err => {
