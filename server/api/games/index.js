@@ -244,8 +244,8 @@ class GamesAPI {
    * @return {Boolean}           Returns true if the field is in the model,
    *                             false otherwise
    */
-  isValidField(fieldName) {
-    let validFields = new GameData();
+  async isValidField(fieldName) {
+    let validFields = await new GameData();
     return (fieldName in validFields)
   }
 
