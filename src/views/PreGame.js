@@ -38,7 +38,7 @@ class PreGame extends React.Component {
 
 
         <label htmlFor="startGameButton">
-            Once all players have joined the game, click "Start Game" to start playing.
+          Once all players have joined the game, click "Start Game" to start playing.
         </label>
         <button
           id="startGameButton"

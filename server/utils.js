@@ -9,7 +9,55 @@
  * @return {Int}     A random number between min and max.
  */
 function randomIntBetween(min, max) {
+
+  if(min > max) {
+    throw new Error('The maximum possible number must be larger than the minimum');
+  }
+
   return  Math.floor((Math.random() * (max+1 - min)) + min);
+}
+
+
+/**
+ * Generates an array of distinct random numbers within a range.
+ * @param  {Int} min    Maximum number the function will generate (inclusive)
+ * @param  {Int} max    Maximum number the function will generate (inclusive)
+ * @param  {Int} number The number of random numbers to generate
+ * @return {Array}      Array of random numbers in random order
+ */
+function randomIntsBetween(min, max, number=1) {
+
+  if(min > max) {
+    throw new Error('The maximum possible number must be larger than the minimum');
+  }
+
+  // Protect against infinite loops by ensuring there are enough integers in the
+  // range to satisfy the requested number of random numbers
+  if (max-min+1 < number) {
+    throw new Error(`You cannot generate ${number} unique, random integers between ${min} and ${max}`);
+  }
+
+  let randomNumbersArray = [];
+  let i = 0;
+
+  while (i < number) {
+
+    let rand = randomIntBetween(min, max);
+
+    // If the number is already in the array, try again.
+    if (randomNumbersArray.indexOf(rand) !== -1) {
+      continue;
+    }
+
+    // Add to array and increment the counter on success
+    randomNumbersArray.push(rand);
+    i++;
+
+  }
+
+  // Return the array of ints in the random order they were generated.
+  return randomNumbersArray;
+
 }
 
 
@@ -40,5 +88,6 @@ function sendMessageToWebsocketsServer(message) {
 
 module.exports = {
   randomIntBetween,
+  randomIntsBetween,
   sendMessageToWebsocketsServer
 }

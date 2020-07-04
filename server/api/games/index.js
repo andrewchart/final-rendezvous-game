@@ -52,7 +52,7 @@ class GamesAPI {
     } while(!unique);
 
     // Save to database
-    let gameData = await new GameData(gameId);
+    let gameData = new GameData(gameId);
     return this.db.insertOne(gameData, 'games').then(result => {
       return this.res.status(201).send({ _id: gameId });
     }).catch(err => {
@@ -107,6 +107,51 @@ class GamesAPI {
     });
 
   }
+
+  /**
+   * Specifically handles a predefined action to start the game by fetching
+   * game. Runs a method on the GameData class that inits random values
+   * @return {undefined} Finished by sending the response to the client.
+   */
+  startGame() {
+
+    // Cannot start a game without an ID
+    if(!this.req.params.entityId) {
+      return apiErrors.badRequest(this.res, 'Unable to start game without specifying game ID');
+    }
+
+    // Create an instance of the GameData class to handle initiation of the new game
+    let gameData = new GameData(this.req.params.entityId);
+
+    // Load the game data onto the instance, then init the game
+    return gameData.loadFromDatabase().then(() => {
+      gameData.initNewGame().then(updateFields => {
+
+        if(!updateFields) {
+          throw new Error('Could not start the game');
+        }
+
+        // Websockets tell all users to fetch the fields that were updated
+        utils.sendMessageToWebsocketsServer({
+          clientType: 'API_SERVER',
+          messageType: 'UPDATE_GAME_DATA',
+          data: {
+            gameId: gameData._id,
+            fields: Object.keys(updateFields)
+          }
+        });
+
+        // Send the http response
+        return this.res.send({ started: true });
+
+      });
+    }).catch(error => {
+      return apiErrors.serverError(this.res, error.message);
+    });
+
+
+  }
+
 
   /**
    * Updates the game data by resolving a patch request to the API
@@ -182,7 +227,16 @@ class GamesAPI {
         break;
 
       case 'PATCH':
-        this.update();
+        switch(this.req.body.action) {
+
+          case 'START_GAME':
+            this.startGame();
+            break;
+
+          default:
+            this.update();
+            break;
+        }
         break;
 
       case 'POST':
@@ -244,8 +298,8 @@ class GamesAPI {
    * @return {Boolean}           Returns true if the field is in the model,
    *                             false otherwise
    */
-  async isValidField(fieldName) {
-    let validFields = await new GameData();
+  isValidField(fieldName) {
+    let validFields = new GameData();
     return (fieldName in validFields)
   }
 

@@ -507,26 +507,27 @@ export default class GameHost {
    */
   gameCanStart() {
     return(
-      this._view.props.gameData.players.length >= 2 &&
+      this._view.props.gameData.players.length >= 1 && //TODO: change back to 2
       this._view.props.gameData.players.length <= 8
     );
   }
 
 
   /**
-   * Irreversibly starts a game once all players have joined. Updates the game
-   * data on the server and initiates the call to the websocket server to notify
-   * all players.
+   * Sends a message to the API to irreversibly start the game. The server then
+   * handles modification of the GameData and sends a websocket message to all
+   * clients to pull the updated GameData into their local stores.
    * @return {Promise} Resolves to a json message confirming whether the update
    *                   has been made to the game data. Describes error on failure.
    */
   startGame() {
 
-    // Prepare the body data
+    // Change UI state to 'loading'
+    this._view.props.dispatch(setLoading(true));
+
+    // Prepare body data to send to server to instruct it to start the game
     let body = {
-      data: {
-        hasStarted: true
-      },
+      action: 'START_GAME',
       socketId: this.websocket.socketId
     }
 
@@ -542,11 +543,12 @@ export default class GameHost {
         throw(new Error("Could not start game."));
       }
 
-      // Handle a successful deletion
+      // Handle a successful response
       return response.json().then(json => {
 
         // Go to the in game view
         this._view.props.dispatch(setHasStarted(true));
+        this._view.props.dispatch(setLoading(false));
 
         return json;
 

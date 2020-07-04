@@ -51,6 +51,21 @@ class Database {
 
 
   /**
+   * Counts the number of documents in a collection
+   * @param  {String}  collection The collection to count.
+   * @return {Promise}            The number of documents in the collection
+   */
+  async countCollection(collection) {
+    try {
+      return await this.db.collection(collection).countDocuments();
+    } catch (error) {
+      console.log(error.stack);
+      return null
+    }
+  }
+
+
+  /**
    * Insert a single document into a collection
    * @param  {Object} document   JSON formatted object of data to insert.
    * @param  {String} collection The collection in which to insert the document.
@@ -93,32 +108,26 @@ class Database {
 
 
   /**
-   * Gets one random entry from the specified collection. Good distribution for
-   * relatively small collections but bear in mind that .skip() scans the whole set.
+   * Finds the document at the given position of the collection. Performance
+   * seems good for relatively small collections but bear in mind that .skip()
+   * scans the whole set until it reaches the position.
+   * @param  {Int}     pos        The position for the cursor to scan to in the
+   *                              collection.
    * @param  {String}  collection The collection in which to search for the document.
    * @param  {Object}  projection A document describing the fields to return e.g.
    *                              { fieldName: 1 }.
    * @return {Promise}            Resolves to an object representation of the random
    *                              document or null if no result is found or on failure.
    */
-  async findOneRandom(collection, projection = null) {
+  async findOneByPosition(pos, collection, projection) {
     try {
-
-      // Count the documents in the collection
-      let count = await this.db.collection(collection).countDocuments();
-
-      // Generate a number of documents for the cursor to skip (0 to n-1)
-      let rand = utils.randomIntBetween(0, count-1);
-
-      // Scan the collection with an optional projection
       return await this.db.collection(collection)
         .find({}, {
           projection: projection
         })
         .limit(-1)
-        .skip(rand)
+        .skip(pos)
         .next();
-
     } catch(error) {
       console.log(error.stack);
       return null;
