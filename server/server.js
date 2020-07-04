@@ -42,7 +42,10 @@ const dbOpts = { useUnifiedTopology: true };
 const dbName = process.env.REACT_APP_MONGO_DB_NAME;
 
 const Database = require('./database.js');
-var db = new Database(dbUrl, dbOpts, dbName);
+const db = new Database();
+(async () => {
+  await db.connect(dbUrl, dbOpts, dbName);
+})();
 
 // API: Routes
 // These routes resolve any requests starting /api. Uses CORS settings.

@@ -1,6 +1,5 @@
 const MongoClient = require('mongodb').MongoClient;
 const assert = require('assert');
-const utils = require('./utils');
 
 /**
  * This helper class provides an initial connection to a MongoDB Instance and
@@ -9,19 +8,19 @@ const utils = require('./utils');
  */
 class Database {
 
-  /**
-   * Create a new database connection via the async connect() method.
-   * @param {String} url        Url of the MongoDB Instance.
-   * @param {Object} opts       MongoDB Init Options.
-   * @param {String} name       Name of the database to connect to.
-   */
-  constructor(url, opts, name) {
+  constructor() {
     this.client = null;
     this.db = null;
-
-    this.connect(url, opts, name);
   }
 
+  /**
+   * Sets up a database client and db connection on the class.
+   * @param  {String}  url  MongoDB url
+   * @param  {Objects} opts MongoDB client options object
+   * @param  {String}  name The name of the database to connect to
+   * @return {Promise}      Resolves to the connected instance of the class or
+   *                        null on error.
+   */
   async connect(url, opts, name) {
 
     // Set up a client
@@ -29,10 +28,15 @@ class Database {
 
     // Establish a database and collection on the class
     try {
-      await this.client.connect();
-      this.db = await this.client.db(name);
+
+      return this.client.connect().then(async () => {
+        this.db = await this.client.db(name);
+        return this;
+      });
+
     } catch (error) {
       console.log(error.stack);
+      return null;
     }
 
   }
