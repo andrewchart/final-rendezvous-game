@@ -2,7 +2,6 @@ import React from 'react';
 
 import {connect} from 'react-redux';
 
-import CityList from '../ui_components/InGame/CityList.js';
 import WorldMap from '../ui_components/InGame/WorldMap.js';
 
 class InGame extends React.Component {
@@ -12,7 +11,6 @@ class InGame extends React.Component {
     return (
       <section className="inGame">
         <WorldMap />
-        <CityList />
       </section>
     );
   }

@@ -8,7 +8,8 @@ export default class CityListItem extends React.Component {
   }
 
   onClick(e) {
-
+    let cityId = e.target.dataset.cityId;
+    this.props.activateMarker('cities', cityId);
   }
 
   render() {

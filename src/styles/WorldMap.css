@@ -2,3 +2,11 @@
   width: 100%;
   height: 60rem;
 }
+
+.cityList li {
+  cursor: pointer;
+}
+
+.cityList li:hover {
+  color: #bfe7ff;
+}

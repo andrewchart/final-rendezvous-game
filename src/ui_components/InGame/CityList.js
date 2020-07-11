@@ -5,6 +5,7 @@ import {connect} from 'react-redux';
 import CityListItem from './CityListItem.js';
 
 class CityList extends React.Component {
+
   render() {
     return (
       <section className="cityList">
@@ -15,7 +16,8 @@ class CityList extends React.Component {
               return (
                 <CityListItem
                   city={city}
-                  key={city._id} />
+                  key={city._id}
+                  activateMarker={this.props.activateMarker} />
               );
             })
           }
