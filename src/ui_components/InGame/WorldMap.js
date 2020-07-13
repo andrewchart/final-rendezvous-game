@@ -1,36 +1,34 @@
 import React, {Fragment} from 'react';
+import ReactDOM from 'react-dom';
 
 import {connect} from 'react-redux';
 
-import CityList from './CityList.js';
+//import CityList from './CityList.js';
 
 // Styles
 import '../../styles/WorldMap.css';
 
 // Images
-import pin from '../../img/map-pin.png';
-import pinActive from '../../img/map-pin-active.png';
+//import pin from '../../img/map-pin.png';
+//import pinActive from '../../img/map-pin-active.png';
 
-class WorldMap extends React.Component {
+
+// Passes the map instance to the OverlayViewContainer allowing React to
+// control the content of map overlays.
+const MapContext = React.createContext(null);
+
+/**
+ * The class controlling the display of the map component and its overlays
+ * @extends React.Component
+ */
+class GoogleMap extends React.Component {
 
   constructor(props) {
     super(props);
 
-    this.map = null;
-
-    // Create a property to hold references to all the markers on the map
-    this.mapMarkers = {
-      cities: []
-    };
-
-    // And a property to hold the current active marker.
-    this.activeMarker = null;
-
-    // Bind `this`
-    this.activateMarker = this.activateMarker.bind(this);
-    this.deactivateActiveMarker = this.deactivateActiveMarker.bind(this);
-    this.addMarker = this.addMarker.bind(this);
-    this.placeCityMarkers = this.placeCityMarkers.bind(this);
+    // References to the Google Maps map object, and the mapContainer DOM element
+    this.state = { map: null };
+    this.mapContainer = React.createRef();
 
   }
 
@@ -40,146 +38,167 @@ class WorldMap extends React.Component {
   componentDidMount() {
 
     // Include map dependencies
-    const API_KEY = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
+    // const API_KEY = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
+    //
+    // var mapScript = document.createElement('script');
+    // mapScript.src = `https://maps.googleapis.com/maps/api/js?key=${API_KEY}&callback=initMap`;
+    // mapScript.defer = true;
+    // mapScript.async = true;
 
-    var mapScript = document.createElement('script');
-    mapScript.src = `https://maps.googleapis.com/maps/api/js?key=${API_KEY}&callback=initMap`;
-    mapScript.defer = true;
-    mapScript.async = true;
-
-    document.head.appendChild(mapScript);
+    //document.head.appendChild(mapScript);
 
     // Callback script to instantiate the map
-    window.initMap = () => {
+    (window.initMap = () => {
 
-      this.map = new window.google.maps.Map(document.getElementById('worldMap'), {
+      let map = new window.google.maps.Map(this.mapContainer.current, {
         center: { lat: 20, lng: 25 },
         zoom: 3
       });
 
-      // Place markers
-      this.placeCityMarkers();
+      this.setState({ map: map });
 
-    }
+    })();
   }
 
   componentWillUnmount() {
-    this.map = null;
+    this.setState({ map: null });
   }
-
-  /**
-   * Adds a marker to the map, optionally including an info window
-   * @param   {String}     type        The first level of the markers array is an object
-   *                                   representing the group of markers to add to.
-   * @param   {String}     key         The key name to set in the markers second-level
-   *                                   array.
-   * @param   {Marker}     marker      Google Maps marker object.
-   * @param   {InfoWindow} infoWindow  Google Maps InfoWindow object
-   * @return  {Object}                 The reference to the marker added
-   */
-  addMarker(type, key, marker, infoWindow = null) {
-
-    // Add the marker and info window
-    this.mapMarkers[type][key] = {
-      marker: marker,
-      infoWindow: infoWindow
-    };
-
-    // If the infoWindow is supplied, attach a click handler to the marker to
-    // open the window.
-    if (infoWindow) {
-      marker.addListener("click", () => {
-        this.activateMarker(type, key);
-      });
-    }
-
-    return this.mapMarkers[type][key];
-
-  }
-
-  activateMarker(type, key) {
-    let marker = this.mapMarkers[type][key].marker;
-    let infoWindow = this.mapMarkers[type][key].infoWindow;
-
-    // Set the pin to an active state
-    marker.setIcon(pinActive);
-
-    // Open the info window
-    infoWindow.open(this.map, marker);
-
-    // Clear all other active markers
-    this.deactivateActiveMarker();
-
-    // Add the marker reference object to the active marker property
-    this.activeMarker = this.mapMarkers[type][key];
-
-  }
-
-
-  /**
-   * [deactivateActiveMarker description]
-   * @return {[type]} [description]
-   */
-  deactivateActiveMarker() {
-    try {
-      this.activeMarker.marker.setIcon(pin);
-      this.activeMarker.infoWindow.close();
-      return true;
-    } catch (err) {
-      return false;
-    }
-  }
-
-
-  /**
-   * Iterates through all the cities, adding a marker for each one to the map.
-   * @return {Object} The references to the map markers added
-   */
-  placeCityMarkers() {
-
-    // Place city markers
-    this.props.cityData.forEach(city => {
-
-      let marker = new window.google.maps.Marker({
-        position: { lat: city.lat, lng: city.lng },
-        map: this.map,
-        title: city.name,
-        icon: pin
-      });
-
-      let infoWindow = new window.google.maps.InfoWindow({
-        content: '<div style="color:#333">hello world</div>'
-      });
-
-      // Reference the markers in the array by cityId
-      this.addMarker('cities', city._id, marker, infoWindow);
-    });
-
-    // Return the references to the map markers
-    return this.mapMarkers.cities;
-
-  }
-
-
 
   render() {
 
     return (
       <Fragment>
-        <section className="worldMap" id="worldMap"></section>
-        <CityList
-          markers={ this.mapMarkers.cities }
-          activateMarker={ this.activateMarker } />
+        <div ref={this.mapContainer} className="worldMap" id="worldMap"></div>
+        <MapContext.Provider value={this.state.map}>{this.props.children}</MapContext.Provider>
       </Fragment>
     );
 
   }
 }
 
+
+/**
+ * React Context consumer component to hold custom map overlays whose content
+ * can be controlled by React.
+ * @extends React.Component
+ */
+class OverlayViewContainer extends React.Component {
+
+  constructor(props) {
+    super(props);
+
+    this.el = document.createElement('div');
+    this.el.style.position = 'absolute';
+    this.el.style.display = 'inline-block';
+    this.el.style.width = '100px';
+    this.el.style.backgroundColor = 'red';
+
+    this.overlay = null;
+  }
+
+  componentDidMount() {
+
+  }
+
+  componentWillUnmount() {
+    // Remove the overlay from the map
+    this.overlay.setMap(null);
+    delete this.overlay;
+  }
+
+  render() {
+
+    this.el.innerHTML = this.props.playerid;
+
+    return (
+      <MapContext.Consumer>
+        {
+          (map) => {
+            if(map) {
+
+              this.overlay = new MapOverlay({ position: this.props.position, content: this.el });
+
+              this.overlay.setMap(map);
+
+
+              return ReactDOM.createPortal(this.props.children, this.el);
+
+            } else {
+              return null;
+            }
+          }
+        }
+      </MapContext.Consumer>
+    );
+  }
+}
+
+
+/** TODO TIDY UP
+ * Creates a new overlay element for the game, based on the base Google Maps
+ * class `OverlayView`. Wrapped in a function so it can be defined in a callback
+ * when the map library is ready.
+ * @extends google.maps.OverlayView
+ */
+class MapOverlay extends window.google.maps.OverlayView {
+    position = null;
+    content = null;
+
+    constructor(props) {
+      super(props);
+      props.position && (this.position = props.position);
+      props.content && (this.content = props.content);
+    }
+
+    /** Called when the popup is added to the map. */
+    onAdd = () => {
+      this.getPanes().floatPane.appendChild(this.content);
+    };
+
+    /** Called when the popup is removed from the map. */
+    onRemove = () => {
+      if (this.content.parentElement) {
+        this.content.parentElement.removeChild(this.content);
+      }
+    };
+
+    /** Called each frame when the popup needs to draw itself. */
+    draw = () => {
+      const divPosition = this.getProjection().fromLatLngToDivPixel(
+        this.position
+      );
+      this.content.style.left = divPosition.x + 'px';
+      this.content.style.top = divPosition.y + 'px';
+    };
+  }
+
+
+
+/**
+ * Finally: Composes all the elements of the map and renders them.
+ * @extends React.Component
+ */
+class WorldMap extends React.Component {
+
+  render() {
+    return(
+      <Fragment>
+        <GoogleMap>
+          <OverlayViewContainer playerid={this.props.localPlayer._id} position={new window.google.maps.LatLng(0, 0)}>
+
+          </OverlayViewContainer>
+        </GoogleMap>
+      </Fragment>
+    );
+  }
+
+}
+
 // Redux Store Data
 const mapStateToProps = (state) => {
   return {
-    cityData: state.cityData
+    //cityData: state.cityData
+    localPlayer: state.localPlayer
   }
 }
 

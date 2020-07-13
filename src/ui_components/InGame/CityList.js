@@ -16,8 +16,7 @@ class CityList extends React.Component {
               return (
                 <CityListItem
                   city={city}
-                  key={city._id}
-                  activateMarker={this.props.activateMarker} />
+                  key={city._id} />
               );
             })
           }
