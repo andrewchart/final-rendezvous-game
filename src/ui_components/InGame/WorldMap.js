@@ -9,7 +9,7 @@ import {connect} from 'react-redux';
 import '../../styles/WorldMap.css';
 
 // Images
-//import pin from '../../img/map-pin.png';
+import pin from '../../img/map-pin.png';
 //import pinActive from '../../img/map-pin-active.png';
 
 
@@ -37,18 +37,12 @@ class GoogleMap extends React.Component {
    */
   componentDidMount() {
 
-    // Include map dependencies
-    // const API_KEY = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
-    //
-    // var mapScript = document.createElement('script');
-    // mapScript.src = `https://maps.googleapis.com/maps/api/js?key=${API_KEY}&callback=initMap`;
-    // mapScript.defer = true;
-    // mapScript.async = true;
+    // Include map dependencies and initiate the Google map
+    const API_KEY = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
 
-    //document.head.appendChild(mapScript);
+    var mapScript = document.createElement('script');
 
-    // Callback script to instantiate the map
-    (window.initMap = () => {
+    mapScript.onload = () => {
 
       let map = new window.google.maps.Map(this.mapContainer.current, {
         center: { lat: 20, lng: 25 },
@@ -57,12 +51,77 @@ class GoogleMap extends React.Component {
 
       this.setState({ map: map });
 
-    })();
+      this.initMapOverlays();
+
+    }
+
+    mapScript.src = `https://maps.googleapis.com/maps/api/js?key=${API_KEY}`;
+    mapScript.defer = true;
+    mapScript.async = true;
+
+    document.head.appendChild(mapScript);
+
   }
 
+  /**
+   * React component lifecycle method
+   */
   componentWillUnmount() {
     this.setState({ map: null });
   }
+
+
+  initMapOverlays() {
+
+    // The custom USGSOverlay object contains the USGS image,
+    // the bounds of the image, and a reference to the map.
+    class Overlay extends window.google.maps.OverlayView {
+
+      position = null;
+      content = null;
+
+      constructor(position, image) {
+        super();
+        this.position = position;
+        this.content = document.createElement('img');
+        this.content.src = image;
+      }
+
+      /** Called when the popup is added to the map. */
+      onAdd = () => {
+        this.getPanes().floatPane.appendChild(this.content);
+      };
+
+      /** Called when the popup is removed from the map. */
+      onRemove = () => {
+        if (this.content.parentElement) {
+          this.content.parentElement.removeChild(this.content);
+        }
+      };
+
+      /** Called each frame when the popup needs to draw itself. */
+      draw = () => {
+        const divPosition = this.getProjection().fromLatLngToDivPixel(
+          this.position
+        );
+
+        this.content.style.position = 'absolute';
+        this.content.style.display = 'inline-block';
+        //this.content.style.width = '100px';
+        this.content.style.left = divPosition.x + 'px';
+        this.content.style.top = divPosition.y + 'px';
+      };
+
+    }
+
+    this.props.cityData.forEach(city => {
+      const overlay = new Overlay(new window.google.maps.LatLng(city.lat, city.lng), pin);
+      overlay.setMap(this.state.map);
+    });
+
+
+  }
+
 
   render() {
 
@@ -82,56 +141,56 @@ class GoogleMap extends React.Component {
  * can be controlled by React.
  * @extends React.Component
  */
-class OverlayViewContainer extends React.Component {
-
-  constructor(props) {
-    super(props);
-
-    this.el = document.createElement('div');
-    this.el.style.position = 'absolute';
-    this.el.style.display = 'inline-block';
-    this.el.style.width = '100px';
-    this.el.style.backgroundColor = 'red';
-
-    this.overlay = null;
-  }
-
-  componentDidMount() {
-
-  }
-
-  componentWillUnmount() {
-    // Remove the overlay from the map
-    this.overlay.setMap(null);
-    delete this.overlay;
-  }
-
-  render() {
-
-    this.el.innerHTML = this.props.playerid;
-
-    return (
-      <MapContext.Consumer>
-        {
-          (map) => {
-            if(map) {
-
-              this.overlay = new MapOverlay({ position: this.props.position, content: this.el });
-
-              this.overlay.setMap(map);
-
-
-              return ReactDOM.createPortal(this.props.children, this.el);
-
-            } else {
-              return null;
-            }
-          }
-        }
-      </MapContext.Consumer>
-    );
-  }
-}
+// class OverlayViewContainer extends React.Component {
+//
+//   constructor(props) {
+//     super(props);
+//
+//     this.el = document.createElement('div');
+//     this.el.style.position = 'absolute';
+//     this.el.style.display = 'inline-block';
+//     this.el.style.width = '100px';
+//     this.el.style.backgroundColor = 'red';
+//
+//     this.overlay = null;
+//   }
+//
+//   componentDidMount() {
+//
+//   }
+//
+//   componentWillUnmount() {
+//     // Remove the overlay from the map
+//     this.overlay.setMap(null);
+//     delete this.overlay;
+//   }
+//
+//   render() {
+//
+//     this.el.innerHTML = this.props.playerid;
+//
+//     return (
+//       <MapContext.Consumer>
+//         {
+//           (map) => {
+//             if(map) {
+//
+//               this.overlay = new MapOverlay({ position: this.props.position, content: this.el });
+//
+//               this.overlay.setMap(map);
+//
+//
+//               return ReactDOM.createPortal(this.props.children, this.el);
+//
+//             } else {
+//               return null;
+//             }
+//           }
+//         }
+//       </MapContext.Consumer>
+//     );
+//   }
+// }
 
 
 /** TODO TIDY UP
@@ -140,37 +199,37 @@ class OverlayViewContainer extends React.Component {
  * when the map library is ready.
  * @extends google.maps.OverlayView
  */
-class MapOverlay extends window.google.maps.OverlayView {
-    position = null;
-    content = null;
-
-    constructor(props) {
-      super(props);
-      props.position && (this.position = props.position);
-      props.content && (this.content = props.content);
-    }
-
-    /** Called when the popup is added to the map. */
-    onAdd = () => {
-      this.getPanes().floatPane.appendChild(this.content);
-    };
-
-    /** Called when the popup is removed from the map. */
-    onRemove = () => {
-      if (this.content.parentElement) {
-        this.content.parentElement.removeChild(this.content);
-      }
-    };
-
-    /** Called each frame when the popup needs to draw itself. */
-    draw = () => {
-      const divPosition = this.getProjection().fromLatLngToDivPixel(
-        this.position
-      );
-      this.content.style.left = divPosition.x + 'px';
-      this.content.style.top = divPosition.y + 'px';
-    };
-  }
+// class MapOverlay extends window.google.maps.OverlayView {
+//   position = null;
+//   content = null;
+//
+//   constructor(props) {
+//     super(props);
+//     props.position && (this.position = props.position);
+//     props.content && (this.content = props.content);
+//   }
+//
+//   /** Called when the popup is added to the map. */
+//   onAdd = () => {
+//     this.getPanes().floatPane.appendChild(this.content);
+//   };
+//
+//   /** Called when the popup is removed from the map. */
+//   onRemove = () => {
+//     if (this.content.parentElement) {
+//       this.content.parentElement.removeChild(this.content);
+//     }
+//   };
+//
+//   /** Called each frame when the popup needs to draw itself. */
+//   draw = () => {
+//     const divPosition = this.getProjection().fromLatLngToDivPixel(
+//       this.position
+//     );
+//     this.content.style.left = divPosition.x + 'px';
+//     this.content.style.top = divPosition.y + 'px';
+//   };
+// }
 
 
 
@@ -183,10 +242,8 @@ class WorldMap extends React.Component {
   render() {
     return(
       <Fragment>
-        <GoogleMap>
-          <OverlayViewContainer playerid={this.props.localPlayer._id} position={new window.google.maps.LatLng(0, 0)}>
+        <GoogleMap cityData={this.props.cityData}>
 
-          </OverlayViewContainer>
         </GoogleMap>
       </Fragment>
     );
@@ -197,8 +254,7 @@ class WorldMap extends React.Component {
 // Redux Store Data
 const mapStateToProps = (state) => {
   return {
-    //cityData: state.cityData
-    localPlayer: state.localPlayer
+    cityData: state.cityData
   }
 }
 
